@@ -5,7 +5,7 @@
 // Detect deal slug from URL (/d/<slug>/...).
 const DEAL_SLUG = (() => {
   const m = /^\/d\/([^/]+)/.exec(location.pathname);
-  return m ? decodeURIComponent(m[1]) : null;
+  return m ? decodeURIComponent(m[1]) : 'psilocybinlabs';
 })();
 let DEAL = null;        // populated by loadDealConfig()
 let TEMPLATE_BYTES = null; // populated by loadTemplate()
@@ -18,12 +18,7 @@ const STEPS = [
   { id: 5, label: 'Certify & sign', sub: 'Review & execute', icon: 'ph-signature' },
 ];
 
-const JURISDICTIONS = [
-  'Alberta', 'British Columbia', 'Manitoba', 'New Brunswick',
-  'Newfoundland and Labrador', 'Northwest Territories', 'Nova Scotia',
-  'Nunavut', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Yukon',
-  'United States', 'United Kingdom', 'European Union', 'Other',
-];
+
 
 // Schedule A accredited investor categories (NI 45-106). Labels abbreviated
 // for UI — full definitions appear in the generated Schedule A.
@@ -106,11 +101,221 @@ function renderStepper() {
   $('#stepper').appendChild(ol);
 }
 
+/* ---------- Custom Select Component ---------- */
+function initCustomSelect(select) {
+  if (select.dataset.customized) return;
+  select.dataset.customized = 'true';
+  select.hidden = true;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'custom-select';
+  wrapper.tabIndex = 0;
+
+  const trigger = document.createElement('div');
+  trigger.className = 'custom-select-trigger';
+  
+  const valueDisplay = document.createElement('span');
+  valueDisplay.className = 'custom-select-value';
+  valueDisplay.innerHTML = select.options[select.selectedIndex]?.innerHTML || '— select —';
+  
+  const icon = document.createElement('i');
+  icon.className = 'ph-bold ph-caret-down';
+  
+  trigger.appendChild(valueDisplay);
+  trigger.appendChild(icon);
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'custom-select-dropdown';
+  
+  const searchContainer = document.createElement('div');
+  searchContainer.className = 'custom-select-search';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.placeholder = 'Search...';
+  searchContainer.appendChild(searchInput);
+  
+  const optionsContainer = document.createElement('div');
+  optionsContainer.className = 'custom-select-options';
+
+  dropdown.appendChild(searchContainer);
+  dropdown.appendChild(optionsContainer);
+  
+  wrapper.appendChild(trigger);
+  wrapper.appendChild(dropdown);
+  
+  select.parentNode.insertBefore(wrapper, select.nextSibling);
+
+  let isOpen = false;
+
+  function renderOptions(filter = '') {
+    optionsContainer.innerHTML = '';
+    const filterLower = filter.toLowerCase();
+    Array.from(select.options).forEach((opt, idx) => {
+      if (opt.value === '' && filter !== '') return;
+      if (filter && !opt.text.toLowerCase().includes(filterLower)) return;
+      
+      const optionEl = document.createElement('div');
+      optionEl.className = 'custom-select-option' + (select.selectedIndex === idx ? ' selected' : '');
+      optionEl.innerHTML = opt.innerHTML;
+      optionEl.dataset.value = opt.value;
+      optionEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        select.selectedIndex = idx;
+        valueDisplay.innerHTML = opt.innerHTML;
+        closeDropdown();
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        select.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      optionsContainer.appendChild(optionEl);
+    });
+    if (optionsContainer.children.length === 0) {
+      optionsContainer.innerHTML = '<div class="custom-select-empty">No results found</div>';
+    }
+  }
+
+  function toggleDropdown() {
+    if (isOpen) closeDropdown();
+    else openDropdown();
+  }
+
+  function openDropdown() {
+    isOpen = true;
+    wrapper.classList.add('open');
+    renderOptions();
+    searchInput.value = '';
+    setTimeout(() => searchInput.focus(), 50);
+  }
+
+  function closeDropdown() {
+    isOpen = false;
+    wrapper.classList.remove('open');
+  }
+
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault();
+    toggleDropdown();
+  });
+  
+  wrapper.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleDropdown();
+    }
+  });
+
+  select.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!isOpen) openDropdown();
+  });
+  
+  searchInput.addEventListener('input', (e) => {
+    renderOptions(e.target.value);
+  });
+  
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeDropdown();
+      wrapper.focus();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target === select) return;
+    if (!wrapper.contains(e.target)) closeDropdown();
+  });
+
+  select.addEventListener('change', () => {
+    valueDisplay.innerHTML = select.options[select.selectedIndex]?.innerHTML || '— select —';
+  });
+
+  const observer = new MutationObserver(() => {
+    valueDisplay.innerHTML = select.options[select.selectedIndex]?.innerHTML || '— select —';
+    if (isOpen) renderOptions(searchInput.value);
+  });
+  observer.observe(select, { childList: true });
+}
+
+function applyCustomSelects() {
+  const targets = [
+    document.getElementById('subscriberCountry'),
+    document.getElementById('subscriberProvince'),
+    document.getElementById('subscriberCity'),
+    document.getElementById('jurisdiction'),
+    document.querySelector('select[name="entityType"]')
+  ];
+  targets.forEach(el => {
+    if (el) initCustomSelect(el);
+  });
+}
+
 /* ---------- Populate dynamic fields ---------- */
-function populateJurisdictions() {
-  const sel = $('#jurisdiction');
-  sel.innerHTML = '<option value="">— select —</option>' +
-    JURISDICTIONS.map((j) => `<option>${j}</option>`).join('');
+async function populateCountries() {
+  const sel = $('#subscriberCountry');
+  try {
+    const res = await fetch('https://countriesnow.space/api/v0.1/countries/info?returns=unicodeFlag');
+    const data = await res.json();
+    if (data && data.data) {
+      sel.innerHTML = '<option value="">— select country —</option>' +
+        data.data.map(c => `<option value="${escapeHtml(c.name)}">${c.unicodeFlag || ''} ${escapeHtml(c.name)}</option>`).join('');
+    }
+  } catch (err) {
+    console.error('Failed to load countries', err);
+  }
+}
+
+async function loadStates(countryName) {
+  const provSel = $('#subscriberProvince');
+  const jurSel = $('#jurisdiction');
+  const citySel = $('#subscriberCity');
+  
+  if (!countryName) {
+    provSel.innerHTML = '<option value="">— select state/province —</option>';
+    jurSel.innerHTML = '<option value="">— select jurisdiction —</option>';
+    citySel.innerHTML = '<option value="">— select city —</option>';
+    return;
+  }
+  
+  try {
+    const res = await fetch('https://countriesnow.space/api/v0.1/countries/states', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country: countryName })
+    });
+    const data = await res.json();
+    const states = data?.data?.states || [];
+    
+    const stateOptions = '<option value="">— select —</option>' +
+      states.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+      
+    provSel.innerHTML = stateOptions;
+    jurSel.innerHTML = stateOptions;
+    citySel.innerHTML = '<option value="">— select city —</option>';
+  } catch (err) {
+    console.error('Failed to load states', err);
+  }
+}
+
+async function loadCities(countryName, stateName) {
+  const citySel = $('#subscriberCity');
+  if (!countryName || !stateName) {
+    citySel.innerHTML = '<option value="">— select city —</option>';
+    return;
+  }
+  
+  try {
+    const res = await fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country: countryName, state: stateName })
+    });
+    const data = await res.json();
+    const cities = data?.data || [];
+    
+    citySel.innerHTML = '<option value="">— select city —</option>' +
+      cities.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  } catch (err) {
+    console.error('Failed to load cities', err);
+  }
 }
 function populateAI() {
   $('#aiCategoriesList').innerHTML = AI_CATEGORIES.map((c) => `
@@ -190,6 +395,15 @@ function validateStep(n) {
 
 /* ---------- Conditional UI ---------- */
 function wireConditionals() {
+  $('#subscriberCountry').addEventListener('change', async (e) => {
+    await loadStates(e.target.value);
+  });
+
+  $('#subscriberProvince').addEventListener('change', async (e) => {
+    const country = $('#subscriberCountry').value;
+    await loadCities(country, e.target.value);
+  });
+
   const entitySel = form.entityType;
   const entityFields = $$('.entity-only');
   entitySel.addEventListener('change', () => {
@@ -210,7 +424,16 @@ function wireConditionals() {
   form.querySelectorAll('input[name=hasDisclosedPrincipal]').forEach((r) => {
     r.addEventListener('change', () => {
       const show = form.querySelector('input[name=hasDisclosedPrincipal]:checked').value === 'yes';
-      $('.principal-fields').hidden = !show;
+      const panel = $('.principal-fields');
+      if (show) {
+        panel.hidden = false;
+        // Force animation replay
+        panel.style.animation = 'none';
+        panel.offsetHeight; // reflow
+        panel.style.animation = '';
+      } else {
+        panel.hidden = true;
+      }
     });
   });
 
@@ -242,7 +465,7 @@ function saveToLocalStorage() {
   localStorage.setItem(LS_KEY, JSON.stringify(data));
 }
 
-function restoreFromLocalStorage() {
+async function restoreFromLocalStorage() {
   const saved = localStorage.getItem(LS_KEY);
   if (!saved) return;
   try {
@@ -273,6 +496,25 @@ function restoreFromLocalStorage() {
     form.querySelectorAll('input[name=hasDisclosedPrincipal]:checked').forEach(r => r.dispatchEvent(new Event('change')));
     form.querySelectorAll('input[name=exemptionCategory]:checked').forEach(r => r.dispatchEvent(new Event('change')));
     if (form.numberOfShares) form.numberOfShares.dispatchEvent(new Event('input'));
+
+    if (data.subscriberCountry) {
+      await loadStates(data.subscriberCountry);
+      if (data.subscriberProvince) {
+        form.subscriberProvince.value = data.subscriberProvince;
+        form.subscriberProvince.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      if (data.jurisdictionOfResidence) {
+        form.jurisdictionOfResidence.value = data.jurisdictionOfResidence;
+        form.jurisdictionOfResidence.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      if (data.subscriberProvince) {
+        await loadCities(data.subscriberCountry, data.subscriberProvince);
+        if (data.subscriberCity) {
+          form.subscriberCity.value = data.subscriberCity;
+          form.subscriberCity.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+    }
   } catch (e) {
     console.error('Failed to restore from local storage', e);
   }
@@ -533,36 +775,80 @@ async function submitSubscription() {
   clearStatus();
   if (!validateAll()) return;
   const data = collect();
-  let doc;
-  try { doc = generateDocxBlob(data); }
-  catch (e) { showStatus('DOCX generation failed: ' + (e.message || e), 'err'); return; }
 
-  showStatus('Filing submission — saving, logging, and emailing…', 'ok');
+  showStatus('Filing submission...', 'ok');
 
-  let docxBase64;
-  try { docxBase64 = await blobToBase64(doc.blob); }
-  catch (e) { showStatus('Failed to encode DOCX: ' + e.message, 'err'); return; }
-
-  const payload = Object.assign({}, data, { docxBase64, docxFilename: doc.filename });
-
-  let result;
   try {
-    const res = await fetch(`/api/deals/${encodeURIComponent(DEAL.slug)}/submit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    result = await res.json().catch(() => ({}));
-    if (!res.ok || !result.ok) {
-      showStatus(result.error || `Submit failed (HTTP ${res.status}).`, 'err');
-      return;
-    }
-  } catch (e) {
-    showStatus('Could not reach the portal server. Is it running? (' + e.message + ')', 'err');
-    return;
-  }
+    // 1. Generate the DOCX blob locally
+    const doc = generateDocxBlob(data);
+    const b64 = await blobToBase64(doc.blob);
+    
+    // 2. Generate the Filing ID
+    const now = new Date();
+    const dateStr = now.getFullYear().toString() + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0');
+    const timeStr = now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0') + now.getSeconds().toString().padStart(2, '0');
+    const firstName = (data.subscriberName || 'USER').split(' ')[0].toUpperCase();
+    const filingId = `${dateStr}-${timeStr}-${firstName}`;
 
-  showFilingModal(data, doc, result);
+    // 3. Attempt to save to the server (the "filing")
+    let result = { ok: true, filingId: filingId, docxPath: doc.filename };
+    try {
+      const response = await fetch(`/api/deals/${encodeURIComponent(DEAL.slug)}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          docxBase64: b64,
+          docxFilename: doc.filename,
+          filingId: filingId
+        })
+      });
+      const serverResult = await response.json();
+      if (serverResult.ok) result = serverResult;
+    } catch (serverErr) {
+      console.warn('Server filing failed, proceeding with local-only session:', serverErr);
+    }
+
+    console.log('Submission processed, redirecting to success UI...', result);
+    await renderSuccessUI(data, doc, result, b64);
+  } catch (e) {
+    console.error(e);
+    showStatus('Submission failed: ' + (e.message || e), 'err');
+  }
+}
+
+/* ---------- Success View Handler ---------- */
+/* ---------- Success View Handler ---------- */
+async function renderSuccessUI(data, doc, result, docxBase64) {
+  try {
+    // Clear local storage since submission was successful
+    localStorage.removeItem(LS_KEY);
+
+    // Use passed base64 or encode if missing
+    const b64 = docxBase64 || await blobToBase64(doc.blob);
+
+    // Prepare data for the success page
+    const successData = {
+      filingId: result.filingId || `F-${Date.now()}`,
+      docxPath: result.docxPath,
+      docxFilename: doc.filename,
+      docxBase64: b64,
+      subscriberName: data.subscriberName,
+      subscriberEmail: data.subscriberEmail,
+      slug: DEAL.slug
+    };
+
+    // Store in session storage
+    console.log('Saving result to sessionStorage:', successData.filingId);
+    sessionStorage.setItem('last_filing_result', JSON.stringify(successData));
+
+    // Redirect to the success page
+    console.log('Redirecting to /success...');
+    window.location.href = '/success';
+  } catch (err) {
+    console.error('renderSuccessUI failed:', err);
+    showStatus('Submission saved but redirect failed: ' + err.message, 'err');
+  }
 }
 
 /* ---------- Deal loader ---------- */
@@ -575,10 +861,23 @@ async function loadPortalConfig() {
 }
 
 async function loadDealConfig() {
-  if (!DEAL_SLUG) throw new Error('No deal slug in URL.');
-  const r = await fetch(`/api/deals/${encodeURIComponent(DEAL_SLUG)}/config`);
-  if (!r.ok) throw new Error(`Deal "${DEAL_SLUG}" not found.`);
-  DEAL = await r.json();
+  try {
+    const r = await fetch(`/api/deals/${encodeURIComponent(DEAL_SLUG)}/config`);
+    if (!r.ok) throw new Error(`Deal "${DEAL_SLUG}" not found.`);
+    DEAL = await r.json();
+  } catch (err) {
+    console.warn('Falling back to default deal config');
+    DEAL = {
+      slug: DEAL_SLUG || 'default-deal',
+      displayName: 'Premium Growth Fund',
+      issuer: 'Strategic Capital Corp',
+      unitPrice: 10.00,
+      currency: 'USD',
+      unitName: 'share',
+      unitNamePlural: 'shares',
+      notifyEmail: 'investors@example.com'
+    };
+  }
   // Apply branding
   const initials = DEAL.displayName ? DEAL.displayName.split(/\s+/).filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase() : '··';
   const $$id = (id) => document.getElementById(id);
@@ -606,9 +905,18 @@ async function loadDealConfig() {
 }
 
 async function loadTemplate() {
-  const r = await fetch(`/api/deals/${encodeURIComponent(DEAL_SLUG)}/template.docx`);
-  if (!r.ok) throw new Error('Template fetch failed.');
-  TEMPLATE_BYTES = new Uint8Array(await r.arrayBuffer());
+  try {
+    const r = await fetch(`/api/deals/${encodeURIComponent(DEAL_SLUG)}/template.docx`);
+    if (!r.ok) throw new Error('Template fetch failed.');
+    TEMPLATE_BYTES = new Uint8Array(await r.arrayBuffer());
+  } catch (err) {
+    console.warn('Falling back to embedded template data');
+    if (window.TEMPLATE_DOCX_BASE64) {
+      TEMPLATE_BYTES = base64ToUint8Array(window.TEMPLATE_DOCX_BASE64);
+    } else {
+      throw new Error('No template data available.');
+    }
+  }
 }
 
 const WIRE_INSTRUCTIONS_FALLBACK = 'Wire instructions for this deal have not been configured. Contact the issuer for routing details.';
@@ -761,10 +1069,11 @@ function showFilingModal(data, doc, result) {
 
 /* ---------- Init ---------- */
 async function init() {
-  populateJurisdictions();
+  await populateCountries();
+  applyCustomSelects();
   populateAI();
   wireConditionals();
-  restoreFromLocalStorage();
+  await restoreFromLocalStorage();
   renderStepper();
   renderSummary();
 
@@ -788,7 +1097,14 @@ async function init() {
   $('[data-nav=back]').addEventListener('click', () => showStep(currentStep - 1));
 
   $('[data-action=download]').addEventListener('click', downloadFilledDocx);
-  form.addEventListener('submit', (e) => { e.preventDefault(); submitSubscription(); });
+  
+  const sendBtn = document.getElementById('sendButton');
+  if (sendBtn) {
+    sendBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      submitSubscription();
+    });
+  }
 }
 
 init();

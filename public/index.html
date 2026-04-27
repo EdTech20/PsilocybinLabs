@@ -80,24 +80,32 @@
           <input name="subscriberAddressLine2" autocomplete="address-line2" placeholder="Suite 100" />
         </label>
         <label class="field">
-          <span>City</span>
-          <input name="subscriberCity" required autocomplete="address-level2" placeholder="Vancouver" />
-        </label>
-        <label class="field">
-          <span>Province / State</span>
-          <input name="subscriberProvince" autocomplete="address-level1" placeholder="BC" />
+          <span>Country</span>
+          <select name="subscriberCountry" id="subscriberCountry" required autocomplete="country-name">
+            <option value="">— select country —</option>
+          </select>
         </label>
         <label class="field">
           <span>Postal / ZIP code</span>
           <input name="subscriberPostal" required autocomplete="postal-code" placeholder="V6B 1A1" />
         </label>
         <label class="field">
-          <span>Country</span>
-          <input name="subscriberCountry" required autocomplete="country-name" value="Canada" />
+          <span>Province / State</span>
+          <select name="subscriberProvince" id="subscriberProvince" required autocomplete="address-level1">
+            <option value="">— select state/province —</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>City</span>
+          <select name="subscriberCity" id="subscriberCity" required autocomplete="address-level2">
+            <option value="">— select city —</option>
+          </select>
         </label>
         <label class="field span-2">
           <span>Jurisdiction of residence (for securities law purposes)</span>
-          <select name="jurisdictionOfResidence" required id="jurisdiction"></select>
+          <select name="jurisdictionOfResidence" required id="jurisdiction">
+            <option value="">— select jurisdiction —</option>
+          </select>
         </label>
       </div>
     </section>
@@ -284,7 +292,7 @@
 
       <div class="actions submit-actions">
         <button type="button" class="btn secondary" data-action="download"><i class="ph-bold ph-download-simple"></i> Download filled DOCX</button>
-        <button type="submit" class="btn primary" id="sendButton">Submit &amp; file <i class="ph-bold ph-paper-plane-right"></i></button>
+        <button type="button" class="btn primary" id="sendButton">Submit &amp; file <i class="ph-bold ph-paper-plane-right"></i></button>
       </div>
       <p class="help small" id="docusignNote"></p>
     </section>
@@ -309,10 +317,13 @@
   </aside>
 </main>
 
+
+
 <!-- Client-side DOCX generation libraries (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.6/dist/pizzip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docxtemplater@3.47.0/build/docxtemplater.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<script src="/template-data.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

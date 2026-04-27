@@ -14,6 +14,7 @@
     "docxtemplater": "^3.47.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "multer": "^2.1.1",
     "pizzip": "^3.1.6"
   }
 }

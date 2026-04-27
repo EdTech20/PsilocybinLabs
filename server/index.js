@@ -11,6 +11,9 @@ require('dotenv').config();
 const { generateFilledDocx } = require('./docgen');
 const { sendForSignature, isDocusignConfigured } = require('./docusign');
 const { validateSubmission } = require('./validation');
+const multer = require('multer');
+const upload = multer({ dest: path.join(__dirname, 'temp_uploads') });
+if (!fs.existsSync(path.join(__dirname, 'temp_uploads'))) fs.mkdirSync(path.join(__dirname, 'temp_uploads'));
 
 const PORT = process.env.PORT || 3001;
 const ROOT = path.join(__dirname, '..');
@@ -94,28 +97,120 @@ app.post('/api/deals/:slug/submit', async (req, res) => {
   }
 });
 
+// Per-deal DocuSign signature request
+app.post('/api/deals/:slug/docusign', async (req, res) => {
+  console.log(`[DocuSign] Received signature request for deal: ${req.params.slug}`);
+  try {
+    const { docxBase64, docxFilename, subscriberName, subscriberEmail } = req.body;
+    
+    if (!subscriberEmail) {
+      console.error('[DocuSign] Missing subscriber email');
+      return res.status(400).json({ error: 'Subscriber email is required.' });
+    }
+
+    if (!isDocusignConfigured()) {
+      console.error('[DocuSign] System not configured. Check .env variables.');
+      return res.status(400).json({ error: 'DocuSign is not configured on this server.' });
+    }
+
+    console.log(`[DocuSign] Initiating envelope for ${subscriberName} <${subscriberEmail}>`);
+    const result = await sendForSignature({
+      documentBuffer: Buffer.from(docxBase64, 'base64'),
+      documentName: docxFilename,
+      subscriberName,
+      subscriberEmail,
+      issuerSignerName: process.env.ISSUER_SIGNER_NAME,
+      issuerSignerEmail: process.env.ISSUER_SIGNER_EMAIL
+    });
+
+    console.log('[DocuSign] Envelope created successfully:', result.envelopeId);
+    res.json(result);
+  } catch (err) {
+    console.error('[DocuSign] Error detailed:', err);
+    res.status(500).json({ 
+      error: err.message || 'Failed to send for signature',
+      details: err.response ? err.response.body : null 
+    });
+  }
+});
+
+// Create a new deal (Admin)
+app.post('/api/admin/deals', upload.single('template'), (req, res) => {
+  try {
+    const { displayName, slug, issuer, unitPrice, currency, notifyEmail, unitName, unitNamePlural, fromEmail, wireInstructions } = req.body;
+    
+    if (!displayName || !issuer) return res.status(400).json({ error: 'Display name and issuer are required' });
+
+    // Generate slug if not provided
+    const baseSlug = slug || displayName;
+    const targetSlug = baseSlug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+    
+    const dealPath = path.join(DEALS_DIR, targetSlug);
+    if (fs.existsSync(dealPath)) {
+      return res.status(400).json({ error: `Deal with slug "${targetSlug}" already exists.` });
+    }
+
+    fs.mkdirSync(dealPath, { recursive: true });
+    fs.mkdirSync(path.join(dealPath, 'filings'), { recursive: true });
+
+    if (req.file) {
+      fs.renameSync(req.file.path, path.join(dealPath, 'template.docx'));
+    }
+
+    const config = {
+      displayName,
+      issuer,
+      unitPrice: Number(unitPrice) || 0.5,
+      currency: currency || 'CAD',
+      notifyEmail: notifyEmail || '',
+      unitName: unitName || 'share',
+      unitNamePlural: unitNamePlural || 'shares',
+      fromEmail: fromEmail || '',
+      wireInstructions: wireInstructions || '',
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    fs.writeFileSync(path.join(dealPath, 'deal.json'), JSON.stringify(config, null, 2));
+
+    res.json({ ok: true, slug: targetSlug, url: `/d/${targetSlug}` });
+  } catch (err) {
+    console.error('Admin create error:', err);
+    res.status(500).json({ error: 'Failed to create deal folder' });
+  }
+});
+
 // ---- Page routes ----
 
-// Serve index.html at the root
+// Serve the self-contained portal as the primary home route
 app.get('/', (req, res) => {
+  const portalPath = path.join(ROOT, 'public', 'portal.html');
+  if (fs.existsSync(portalPath)) return res.sendFile(portalPath);
   res.sendFile(path.join(ROOT, 'public', 'index.html'));
 });
 
-// Serve landing.html at /landing
-app.get('/landing', (req, res) => {
-  res.sendFile(path.join(ROOT, 'public', 'landing.html'));
+// /portal also serves the portal
+app.get('/portal', (req, res) => {
+  res.sendFile(path.join(ROOT, 'public', 'portal.html'));
 });
 
-// Serve admin.html at /admin
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(ROOT, 'public', 'admin.html'));
-});
-
-// Serve the portal (index.html) for any /d/:slug path
+// Serve the portal for any /d/:slug path (slug is passed to the page via URL)
 app.get('/d/:slug', (req, res) => {
   const config = getDealConfig(req.params.slug);
   if (!config) return res.status(404).send('Deal not found');
+  const portalPath = path.join(ROOT, 'public', 'portal.html');
+  if (fs.existsSync(portalPath)) return res.sendFile(portalPath);
   res.sendFile(path.join(ROOT, 'public', 'index.html'));
+});
+
+// Legacy routes
+app.get('/landing', (req, res) => {
+  res.sendFile(path.join(ROOT, 'public', 'landing.html'));
+});
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(ROOT, 'public', 'admin.html'));
+});
+app.get('/success', (req, res) => {
+  res.sendFile(path.join(ROOT, 'public', 'success.html'));
 });
 
 // Static assets
