@@ -183,22 +183,18 @@ app.post('/api/admin/deals', upload.single('template'), (req, res) => {
 
 // Serve the self-contained portal as the primary home route
 app.get('/', (req, res) => {
-  const portalPath = path.join(ROOT, 'public', 'portal.html');
-  if (fs.existsSync(portalPath)) return res.sendFile(portalPath);
   res.sendFile(path.join(ROOT, 'public', 'index.html'));
 });
 
 // /portal also serves the portal
 app.get('/portal', (req, res) => {
-  res.sendFile(path.join(ROOT, 'public', 'portal.html'));
+  res.sendFile(path.join(ROOT, 'public', 'index.html'));
 });
 
 // Serve the portal for any /d/:slug path (slug is passed to the page via URL)
 app.get('/d/:slug', (req, res) => {
   const config = getDealConfig(req.params.slug);
   if (!config) return res.status(404).send('Deal not found');
-  const portalPath = path.join(ROOT, 'public', 'portal.html');
-  if (fs.existsSync(portalPath)) return res.sendFile(portalPath);
   res.sendFile(path.join(ROOT, 'public', 'index.html'));
 });
 
