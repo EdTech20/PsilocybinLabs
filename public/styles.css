@@ -95,7 +95,7 @@ body { min-height: 100vh; font-size: 14px; line-height: 1.6; }
   z-index: 1;
 }
 .stepper li.done:not(:last-child)::after {
-  background: var(--accent);
+  background: var(--ok);
 }
 
 /* Icon circle */
@@ -137,7 +137,7 @@ body { min-height: 100vh; font-size: 14px; line-height: 1.6; }
 
 /* Done State */
 .stepper li.done .step-icon {
-  background: var(--surface); color: var(--accent); border-color: var(--accent);
+  background: var(--ok); color: #ffffff; border-color: var(--ok);
 }
 .stepper li.done .step-title {
   color: var(--ink);
