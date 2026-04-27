@@ -75,22 +75,23 @@ body { min-height: 100vh; font-size: 14px; line-height: 1.6; }
   align-self: flex-start; position: sticky; top: 100px;
   padding: 0; background: transparent;
 }
-.stepper ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.stepper ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .stepper li {
-  padding: 12px 16px; border-radius: 12px; color: var(--ink-soft);
-  display: flex; gap: 14px; align-items: center; cursor: default;
-  font-size: 14px; font-weight: 500; transition: all 0.2s ease;
+  padding: 16px 20px; border-radius: 16px; color: var(--ink-soft);
+  display: flex; gap: 16px; align-items: center; cursor: default;
+  font-size: 16px; font-weight: 600; transition: all 0.2s ease;
+  border: 1px solid transparent; background: transparent;
 }
 .stepper li .num {
-  width: 26px; height: 26px; border-radius: 8px;
-  background: var(--surface-alt); color: var(--muted);
-  display: grid; place-items: center; font-size: 13px; font-weight: 700;
-  border: 1px solid var(--line); transition: all 0.2s ease;
+  width: 32px; height: 32px; border-radius: 10px;
+  background: transparent; color: #94a3b8;
+  display: grid; place-items: center; font-size: 14px; font-weight: 800;
+  border: 1.5px solid #e2e8f0; transition: all 0.2s ease;
 }
-.stepper li.active { background: var(--surface); box-shadow: var(--shadow-sm); border: 1px solid var(--line); color: var(--ink); font-weight: 600; }
-.stepper li.active .num { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: var(--shadow-glow); }
-.stepper li.done { color: var(--ink); }
-.stepper li.done .num { background: var(--ok); color: #fff; border-color: var(--ok); }
+.stepper li.active { background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a; font-weight: 700; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02); }
+.stepper li.active .num { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+.stepper li.done { color: var(--ink-soft); }
+.stepper li.done .num { background: transparent; color: var(--ok); border-color: var(--ok); }
 
 h2 { font-size: 22px; margin: 0 0 8px; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
 h2 i { color: var(--accent); }
