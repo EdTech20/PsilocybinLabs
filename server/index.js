@@ -111,11 +111,11 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(ROOT, 'public', 'admin.html'));
 });
 
-// Serve the portal (form.html) for any /d/:slug path
+// Serve the portal (index.html) for any /d/:slug path
 app.get('/d/:slug', (req, res) => {
   const config = getDealConfig(req.params.slug);
   if (!config) return res.status(404).send('Deal not found');
-  res.sendFile(path.join(ROOT, 'public', 'form.html'));
+  res.sendFile(path.join(ROOT, 'public', 'index.html'));
 });
 
 // Static assets
