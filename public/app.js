@@ -11,11 +11,11 @@ let DEAL = null;        // populated by loadDealConfig()
 let TEMPLATE_BYTES = null; // populated by loadTemplate()
 
 const STEPS = [
-  { id: 1, label: 'Identity' },
-  { id: 2, label: 'Address & residency' },
-  { id: 3, label: 'Subscription' },
-  { id: 4, label: 'Prospectus exemption' },
-  { id: 5, label: 'Certify & sign' },
+  { id: 1, label: 'Identity', sub: 'Subscriber details', icon: 'ph-user' },
+  { id: 2, label: 'Address & residency', sub: 'Jurisdiction & address', icon: 'ph-map-pin' },
+  { id: 3, label: 'Subscription', sub: 'Shares & pricing', icon: 'ph-briefcase' },
+  { id: 4, label: 'Prospectus exemption', sub: 'Legal qualification', icon: 'ph-scales' },
+  { id: 5, label: 'Certify & sign', sub: 'Review & execute', icon: 'ph-signature' },
 ];
 
 const JURISDICTIONS = [
@@ -87,11 +87,19 @@ function clearStatus() { status.hidden = true; status.textContent = ''; }
 /* ---------- Render stepper ---------- */
 function renderStepper() {
   const ol = document.createElement('ol');
-  STEPS.forEach(({ id, label }) => {
+  STEPS.forEach(({ id, label, sub, icon }) => {
     const li = document.createElement('li');
     if (id === currentStep) li.classList.add('active');
     if (id < currentStep) li.classList.add('done');
-    li.innerHTML = `<span class="num">${id}</span><span>${label}</span>`;
+    
+    // Render icon and text wrapper
+    li.innerHTML = `
+      <div class="step-icon"><i class="ph-bold ${icon}"></i></div>
+      <div class="step-text">
+        <div class="step-title">${label}</div>
+        <div class="step-sub">${sub}</div>
+      </div>
+    `;
     ol.appendChild(li);
   });
   $('#stepper').innerHTML = '';

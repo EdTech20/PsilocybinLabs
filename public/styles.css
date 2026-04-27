@@ -75,23 +75,73 @@ body { min-height: 100vh; font-size: 14px; line-height: 1.6; }
   align-self: flex-start; position: sticky; top: 100px;
   padding: 0; background: transparent;
 }
-.stepper ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.stepper ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .stepper li {
-  padding: 16px 20px; border-radius: 16px; color: var(--ink-soft);
-  display: flex; gap: 16px; align-items: center; cursor: default;
-  font-size: 16px; font-weight: 600; transition: all 0.2s ease;
-  border: 1px solid transparent; background: transparent;
+  display: flex; gap: 20px; align-items: flex-start; cursor: default;
+  position: relative; padding-bottom: 40px;
 }
-.stepper li .num {
-  width: 32px; height: 32px; border-radius: 10px;
-  background: transparent; color: #94a3b8;
-  display: grid; place-items: center; font-size: 14px; font-weight: 800;
-  border: 1.5px solid #e2e8f0; transition: all 0.2s ease;
+.stepper li:last-child { padding-bottom: 0; }
+
+/* The vertical connecting line */
+.stepper li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 27px; /* Center of the 54px circle */
+  top: 60px;  /* Starts below the circle with a gap */
+  bottom: 6px; /* Ends before the next circle with a gap */
+  width: 2px;
+  background: var(--line);
+  border-radius: 2px;
+  z-index: 1;
 }
-.stepper li.active { background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a; font-weight: 700; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02); }
-.stepper li.active .num { background: #2563eb; color: #ffffff; border-color: #2563eb; }
-.stepper li.done { color: var(--ink-soft); }
-.stepper li.done .num { background: transparent; color: var(--ok); border-color: var(--ok); }
+.stepper li.done:not(:last-child)::after {
+  background: var(--accent);
+}
+
+/* Icon circle */
+.stepper .step-icon {
+  width: 54px; height: 54px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+  background: transparent;
+  color: var(--muted);
+  border: 2px solid var(--line);
+  transition: all 0.3s ease;
+  position: relative; z-index: 2;
+}
+
+/* Text block */
+.stepper .step-text {
+  display: flex; flex-direction: column; gap: 4px; padding-top: 6px;
+}
+.stepper .step-title {
+  font-size: 17px; font-weight: 700; color: var(--ink-soft);
+  transition: all 0.3s ease; line-height: 1.2;
+}
+.stepper .step-sub {
+  font-size: 14px; font-weight: 500; color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Active State */
+.stepper li.active .step-icon {
+  background: var(--accent); color: #ffffff; border-color: var(--accent);
+  box-shadow: var(--shadow-glow);
+}
+.stepper li.active .step-title {
+  color: var(--ink); font-size: 18px; font-weight: 800;
+}
+.stepper li.active .step-sub {
+  color: var(--ink-soft);
+}
+
+/* Done State */
+.stepper li.done .step-icon {
+  background: var(--surface); color: var(--accent); border-color: var(--accent);
+}
+.stepper li.done .step-title {
+  color: var(--ink);
+}
 
 h2 { font-size: 22px; margin: 0 0 8px; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
 h2 i { color: var(--accent); }
