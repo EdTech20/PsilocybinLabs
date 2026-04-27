@@ -1,0 +1,19 @@
+{
+  "name": "autosubdoc",
+  "version": "0.2.0",
+  "private": true,
+  "description": "AutoSubDoc - multi-deal subscription document portal. Each uploaded subscription document gets its own investor-facing page, filings folder, master spreadsheet, notification email, and Stripe checkout.",
+  "scripts": {
+    "serve": "powershell -ExecutionPolicy Bypass -File scripts/serve.ps1",
+    "dev": "node server/index.js",
+    "build-template": "powershell -ExecutionPolicy Bypass -File scripts/build-template.ps1",
+    "export-instructions": "powershell -ExecutionPolicy Bypass -File scripts/export-instructions.ps1"
+  },
+  "dependencies": {
+    "docusign-esign": "^6.5.0",
+    "docxtemplater": "^3.47.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pizzip": "^3.1.6"
+  }
+}

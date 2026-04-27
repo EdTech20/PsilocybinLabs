@@ -1,0 +1,16 @@
+{
+  "slug": "psilocybinlabs",
+  "displayName": "PsilocybinLabs - $0.50 Share Offering",
+  "issuer": "1210954 B.C. Ltd. (PsilocybinLabs)",
+  "subTitle": "Private Placement Subscription Portal",
+  "currency": "CAD",
+  "unitPrice": 0.50,
+  "unitName": "common share",
+  "unitNamePlural": "common shares",
+  "formType": "complex_canadian_pp",
+  "notifyEmail": "Olivia@northwardcap.com",
+  "fromEmail": "subscriptions@psilocybinlabs.local",
+  "stripeEnabled": true,
+  "wireInstructions": "Wire transfer instructions (CAD)\nAccount name: McMillan LLP, In Trust\nAccount address: 1500-1055 West Georgia Street, Vancouver, BC V6E 4N7\nBank: BMO Bank of Montreal, First Bank Tower, 595 Burrard Street, Vancouver, BC V7X 1L7\nAccount #: 00041577447    Transit: 00040    Bank: 001    SWIFT: BOFMCAM2\n\nIf sending USD from outside Canada, route through:\nWells Fargo Bank NA (intermediary)    SWIFT: PNBPUS3NNYC    Fedwire ABA#: 026005092\n\nReference / \"for further credit\": 1210954 B.C. Ltd. / SJARVIS / $0.50 Share PP",
+  "createdAt": "2026-04-25"
+}

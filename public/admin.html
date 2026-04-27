@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AutoSubDoc · Admin</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-mark">AS</div>
+    <div>
+      <div class="brand-title">AutoSubDoc · Admin</div>
+      <div class="brand-sub">Manage offerings &amp; upload new subscription documents</div>
+    </div>
+  </div>
+  <a class="btn ghost" href="/">View offerings</a>
+</header>
+
+<main class="layout deals-layout">
+  <section class="card">
+    <h2>Existing deals</h2>
+    <div id="deals" class="deal-table"></div>
+  </section>
+
+  <section class="card">
+    <h2>Add a new deal</h2>
+    <p class="help">Upload the subscription document for a new deal. The DOCX must already contain the standard <code>{PLACEHOLDERS}</code> in Word — see <a href="https://github.com">INSTRUCTIONS.md §6</a> for the full list. Each deal becomes its own portal page at <code>/d/&lt;slug&gt;/</code>.</p>
+    <form id="newDealForm" enctype="multipart/form-data">
+      <div class="grid">
+        <label class="field span-2"><span>Display name</span><input name="displayName" required placeholder="e.g. Acme Bio - Series A Preferred" /></label>
+        <label class="field"><span>Slug (URL)</span><input name="slug" placeholder="auto from name" /></label>
+        <label class="field"><span>Issuer</span><input name="issuer" required placeholder="Legal name of issuer" /></label>
+        <label class="field"><span>Currency</span>
+          <select name="currency" required>
+            <option>CAD</option><option>USD</option><option>EUR</option><option>GBP</option>
+          </select>
+        </label>
+        <label class="field"><span>Price per unit</span><input name="unitPrice" type="number" step="0.0001" min="0.0001" required placeholder="e.g. 0.50" /></label>
+        <label class="field"><span>Unit name (singular)</span><input name="unitName" placeholder="common share" /></label>
+        <label class="field"><span>Unit name (plural)</span><input name="unitNamePlural" placeholder="common shares" /></label>
+        <label class="field"><span>Notification email</span><input name="notifyEmail" type="email" required placeholder="legal@firm.com" /></label>
+        <label class="field"><span>From email</span><input name="fromEmail" type="email" placeholder="subscriptions@issuer.com" /></label>
+        <label class="field span-2"><span>Wire instructions (optional)</span>
+          <textarea name="wireInstructions" rows="4" placeholder="Bank, account#, routing, reference..." style="padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px;resize:vertical"></textarea>
+        </label>
+        <label class="field span-2"><span>Subscription document (.docx with {PLACEHOLDERS})</span>
+          <input name="template" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required />
+        </label>
+      </div>
+      <div class="actions submit-actions">
+        <button type="submit" class="btn primary">Create deal</button>
+      </div>
+      <div id="adminStatus" class="status" hidden></div>
+    </form>
+  </section>
+</main>
+
+<script>
+function fmt(n, c) { return Number(n).toLocaleString('en-CA', { style:'currency', currency:(c||'CAD') }); }
+
+async function refreshDealsList() {
+  const root = document.getElementById('deals');
+  root.innerHTML = '<div class="help small">Loading…</div>';
+  const { deals } = await fetch('/api/deals').then(r => r.json());
+  if (!deals || !deals.length) { root.innerHTML = '<div class="help small">No deals yet.</div>'; return; }
+  root.innerHTML = '';
+  const tbl = document.createElement('table');
+  tbl.className = 'deal-table-grid';
+  tbl.innerHTML = '<thead><tr><th>Slug</th><th>Display name</th><th>Issuer</th><th>Price</th><th>Created</th><th></th></tr></thead><tbody></tbody>';
+  const tbody = tbl.querySelector('tbody');
+  for (const d of deals) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><code>${d.slug}</code></td><td>${d.displayName||''}</td><td>${d.issuer||''}</td><td>${fmt(d.unitPrice, d.currency)}</td><td>${d.createdAt||''}</td><td><a class="btn ghost" href="/d/${encodeURIComponent(d.slug)}/">Open</a></td>`;
+    tbody.appendChild(tr);
+  }
+  root.appendChild(tbl);
+}
+
+document.getElementById('newDealForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const status = document.getElementById('adminStatus');
+  status.className = 'status ok'; status.textContent = 'Uploading…'; status.hidden = false;
+  const fd = new FormData(e.target);
+  try {
+    const res = await fetch('/api/admin/deals', { method:'POST', body: fd });
+    const out = await res.json();
+    if (!res.ok || !out.ok) throw new Error(out.error || ('HTTP '+res.status));
+    status.className = 'status ok';
+    status.innerHTML = `Deal created: <strong>${out.slug}</strong>. <a href="${out.url}">Open portal →</a>`;
+    e.target.reset();
+    refreshDealsList();
+  } catch (err) {
+    status.className = 'status err';
+    status.textContent = 'Upload failed: ' + err.message;
+  }
+});
+
+refreshDealsList();
+</script>
+</body>
+</html>

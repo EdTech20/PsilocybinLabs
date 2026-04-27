@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "portal",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "Set-Location 'C:/Users/ianmc/OneDrive/Documents/Claude/Sub doc website'; & ./scripts/serve.ps1 -Port 3000 -NoAutoOpen"
+      ],
+      "port": 3000
+    }
+  ]
+}

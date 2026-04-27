@@ -1,0 +1,6 @@
+node_modules/
+.env
+generated/
+extracted/
+agreement_text.txt
+*.log

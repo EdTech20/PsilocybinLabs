@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Subscription Portal</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-mark" id="brandMark">··</div>
+    <div>
+      <div class="brand-title" id="brandTitle">Loading…</div>
+      <div class="brand-sub" id="brandSub"></div>
+    </div>
+  </div>
+  <div class="offering-pill" id="offeringPill"></div>
+</header>
+
+<main class="layout">
+  <aside class="stepper" id="stepper"></aside>
+
+  <form id="subscription-form" class="card" novalidate>
+
+    <!-- STEP 1 : Subscriber identity -->
+    <section class="step" data-step="1">
+      <h2>1. Subscriber identity</h2>
+      <p class="help">Enter the legal name as it should appear on the share register.</p>
+      <div class="grid">
+        <label class="field span-2">
+          <span>Subscriber type</span>
+          <select name="entityType" required>
+            <option value="">— select —</option>
+            <option value="individual">Individual</option>
+            <option value="entity">Corporation / Trust / Partnership / Other entity</option>
+          </select>
+        </label>
+        <label class="field span-2">
+          <span>Full legal name of Subscriber</span>
+          <input name="subscriberName" required autocomplete="name" />
+        </label>
+        <label class="field entity-only">
+          <span>Official capacity / title of signatory</span>
+          <input name="officialCapacity" placeholder="e.g. Director" />
+        </label>
+        <label class="field entity-only">
+          <span>Name of authorized signatory</span>
+          <input name="signatoryName" />
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input name="subscriberEmail" type="email" required autocomplete="email" />
+        </label>
+        <label class="field">
+          <span>Telephone (with country code)</span>
+          <input name="subscriberPhone" required autocomplete="tel" placeholder="+1 604 555 0123" />
+        </label>
+      </div>
+    </section>
+
+    <!-- STEP 2 : Address & residency -->
+    <section class="step" data-step="2" hidden>
+      <h2>2. Address &amp; jurisdiction of residence</h2>
+      <p class="help">
+        Your jurisdiction of residence determines which prospectus exemption is available to you and which
+        disclosures must accompany the agreement.
+      </p>
+      <div class="grid">
+        <label class="field span-2">
+          <span>Street address (line 1)</span>
+          <input name="subscriberAddressLine1" required autocomplete="address-line1" />
+        </label>
+        <label class="field span-2">
+          <span>Street address (line 2)</span>
+          <input name="subscriberAddressLine2" autocomplete="address-line2" />
+        </label>
+        <label class="field">
+          <span>City</span>
+          <input name="subscriberCity" required autocomplete="address-level2" />
+        </label>
+        <label class="field">
+          <span>Province / State</span>
+          <input name="subscriberProvince" autocomplete="address-level1" />
+        </label>
+        <label class="field">
+          <span>Postal / ZIP code</span>
+          <input name="subscriberPostal" required autocomplete="postal-code" />
+        </label>
+        <label class="field">
+          <span>Country</span>
+          <input name="subscriberCountry" required autocomplete="country-name" value="Canada" />
+        </label>
+        <label class="field span-2">
+          <span>Jurisdiction of residence (for securities law purposes)</span>
+          <select name="jurisdictionOfResidence" required id="jurisdiction"></select>
+        </label>
+      </div>
+    </section>
+
+    <!-- STEP 3 : Subscription details -->
+    <section class="step" data-step="3" hidden>
+      <h2>3. Subscription</h2>
+      <div class="grid">
+        <label class="field">
+          <span>Number of common shares</span>
+          <input name="numberOfShares" type="number" min="1" step="1" required />
+        </label>
+        <label class="field">
+          <span>Aggregate subscription price (auto, CAD)</span>
+          <input name="aggregatePrice" id="aggregatePrice" readonly />
+        </label>
+        <label class="field">
+          <span>Current holdings of Company shares</span>
+          <input name="currentHoldings" type="number" min="0" step="1" value="0" required />
+        </label>
+        <label class="field">
+          <span>Subscription no. (optional)</span>
+          <input name="subscriptionNo" placeholder="assigned by Company" />
+        </label>
+      </div>
+
+      <fieldset class="fieldset">
+        <legend>Registrant status</legend>
+        <label class="radio">
+          <input type="radio" name="registrantStatus" value="registered" required />
+          I am a person registered, or required to be registered, under applicable securities law.
+        </label>
+        <label class="radio">
+          <input type="radio" name="registrantStatus" value="not_registered" />
+          I am NOT a person registered, or required to be registered, under applicable securities law.
+        </label>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend>Acting as agent for a Disclosed Principal?</legend>
+        <label class="radio">
+          <input type="radio" name="hasDisclosedPrincipal" value="no" checked />
+          No — I am purchasing as principal.
+        </label>
+        <label class="radio">
+          <input type="radio" name="hasDisclosedPrincipal" value="yes" />
+          Yes — I am purchasing as agent for a disclosed principal.
+        </label>
+        <div class="principal-fields" hidden>
+          <label class="field">
+            <span>Name of Disclosed Principal</span>
+            <input name="disclosedPrincipalName" />
+          </label>
+          <label class="field">
+            <span>Disclosed Principal's address</span>
+            <input name="disclosedPrincipalAddress" />
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend>Registration instructions (if different from Subscriber)</legend>
+        <div class="grid">
+          <label class="field"><span>Register name</span><input name="regName" /></label>
+          <label class="field"><span>Account reference</span><input name="regAccountRef" /></label>
+          <label class="field span-2"><span>Registration address</span><input name="regAddress" /></label>
+        </div>
+      </fieldset>
+    </section>
+
+    <!-- STEP 4 : Prospectus exemption -->
+    <section class="step" data-step="4" hidden>
+      <h2>4. Prospectus exemption</h2>
+      <p class="help">
+        The offering is being made on a private placement basis. You must qualify under one of the
+        exemptions below for the Company to accept your subscription.
+      </p>
+
+      <div class="exemption-picker">
+        <label class="radio tile">
+          <input type="radio" name="exemptionCategory" value="accredited_investor_ca" />
+          <div>
+            <strong>Canadian Accredited Investor</strong>
+            <p>NI 45-106, section 2.3 — Schedule A</p>
+          </div>
+        </label>
+        <label class="radio tile">
+          <input type="radio" name="exemptionCategory" value="ffba_ca" />
+          <div>
+            <strong>Family, Friends &amp; Business Associates</strong>
+            <p>NI 45-106, section 2.5 — Schedule B (not available in Ontario)</p>
+          </div>
+        </label>
+        <label class="radio tile">
+          <input type="radio" name="exemptionCategory" value="us_accredited" />
+          <div>
+            <strong>U.S. Accredited Investor</strong>
+            <p>Rule 506(b) / Regulation D — Schedule C</p>
+          </div>
+        </label>
+      </div>
+
+      <!-- Canadian AI categories -->
+      <fieldset id="aiCategories" class="fieldset exemption-panel" hidden>
+        <legend>Accredited Investor categories — initial each that applies (Schedule A)</legend>
+        <p class="help small">
+          If you rely on categories <strong>(j)</strong>, <strong>(j.1)</strong>, <strong>(k)</strong> or
+          <strong>(l)</strong> as an individual, you must also complete Form 45-106F9 (appended
+          automatically).
+        </p>
+        <div id="aiCategoriesList"></div>
+      </fieldset>
+
+      <!-- FFBA categories -->
+      <fieldset id="ffbaFields" class="fieldset exemption-panel" hidden>
+        <legend>Family, Friends &amp; Business Associates — Schedule B</legend>
+        <div class="stack">
+          <label class="radio"><input type="radio" name="ffbaCategory" value="a" /> (a) Director, executive officer or control person of the Issuer or an affiliate.</label>
+          <label class="radio"><input type="radio" name="ffbaCategory" value="b" /> (b) Spouse, parent, grandparent, brother, sister, child or grandchild of a director/officer/control person.</label>
+          <label class="radio"><input type="radio" name="ffbaCategory" value="c" /> (c) Parent, grandparent, brother, sister, child or grandchild of the spouse of a director/officer/control person.</label>
+          <label class="radio"><input type="radio" name="ffbaCategory" value="d" /> (d) Close personal friend of a director/officer/control person.</label>
+          <label class="radio"><input type="radio" name="ffbaCategory" value="e" /> (e) Close business associate of a director/officer/control person.</label>
+          <label class="radio"><input type="radio" name="ffbaCategory" value="f" /> (f) Founder, or family/friend/close business associate of a founder.</label>
+          <label class="radio"><input type="radio" name="ffbaCategory" value="g" /> (g) Parent, grandparent, brother, sister, child or grandchild of a spouse of a founder.</label>
+        </div>
+        <div class="grid">
+          <label class="field span-2">
+            <span>Name of the director/officer/control person/founder</span>
+            <input name="ffbaRelationshipName" />
+          </label>
+          <label class="field">
+            <span>Length of relationship</span>
+            <input name="ffbaRelationshipLength" placeholder="e.g. 7 years" />
+          </label>
+          <label class="field">
+            <span>Nature of relationship</span>
+            <input name="ffbaRelationshipNature" placeholder="e.g. Close personal friend" />
+          </label>
+          <label class="field span-2">
+            <span>Prior business dealings (if applicable)</span>
+            <input name="ffbaPriorDealings" />
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- US AI categories -->
+      <fieldset id="usAiCategories" class="fieldset exemption-panel" hidden>
+        <legend>U.S. Accredited Investor categories — Schedule C</legend>
+        <div id="usAiCategoriesList"></div>
+      </fieldset>
+    </section>
+
+    <!-- STEP 5 : Certifications & signature -->
+    <section class="step" data-step="5" hidden>
+      <h2>5. Certifications &amp; execution</h2>
+      <p class="help">
+        By initialling each certification below you acknowledge the risks and representations that form
+        part of the Subscription Agreement.
+      </p>
+
+      <fieldset class="fieldset">
+        <legend>Required certifications</legend>
+        <label class="check"><input type="checkbox" name="certRead" required /> I have read and understood the Subscription Agreement including the terms and conditions, schedules and any applicable appendices.</label>
+        <label class="check"><input type="checkbox" name="certAuth" required /> I have all necessary legal capacity and authority to enter into this subscription.</label>
+        <label class="check"><input type="checkbox" name="certOwnAccount" required /> I am purchasing the Shares as principal for my own account (or as agent for a disclosed principal who is purchasing as principal) and not with a view to resale or distribution.</label>
+        <label class="check"><input type="checkbox" name="certPoCrime" required /> The funds I am using to purchase the Shares are not, to my knowledge, proceeds of crime.</label>
+        <label class="check"><input type="checkbox" name="certRisk" required /> I understand this investment is risky, the Shares are subject to an indefinite resale restriction, and I could lose my entire investment.</label>
+        <label class="check"><input type="checkbox" name="certAdvice" required /> I have been encouraged to — and had the opportunity to — obtain independent legal, tax and investment advice.</label>
+        <label class="check"><input type="checkbox" name="certElectronic" required /> I consent to the electronic delivery and electronic execution of this agreement and schedules.</label>
+      </fieldset>
+
+      <div class="grid">
+        <label class="field">
+          <span>Execution date</span>
+          <input name="executionDate" type="date" required />
+        </label>
+        <label class="field">
+          <span>Typed signature (full legal name)</span>
+          <input name="typedSignature" required placeholder="Type your full legal name" />
+        </label>
+      </div>
+
+      <div class="review-box" id="reviewBox"></div>
+
+      <div class="actions submit-actions">
+        <button type="button" class="btn secondary" data-action="download">Download filled DOCX</button>
+        <button type="submit" class="btn primary" id="sendButton">Submit &amp; file</button>
+      </div>
+      <p class="help small" id="docusignNote"></p>
+    </section>
+
+    <!-- Navigation -->
+    <div class="actions nav-actions">
+      <button type="button" class="btn ghost" data-nav="back" hidden>Back</button>
+      <button type="button" class="btn primary" data-nav="next">Next</button>
+    </div>
+
+    <!-- Status -->
+    <div id="status" class="status" hidden></div>
+  </form>
+
+  <aside class="summary card" id="summary">
+    <h3>Live summary</h3>
+    <dl id="summaryList"></dl>
+    <p class="disclaimer">
+      This portal assists in completing the subscription documents. It does not constitute legal,
+      tax or investment advice. Keep a signed copy for your records.
+    </p>
+  </aside>
+</main>
+
+<!-- Client-side DOCX generation libraries (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.6/dist/pizzip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docxtemplater@3.47.0/build/docxtemplater.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

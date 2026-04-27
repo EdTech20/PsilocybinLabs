@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp \"/c/Users/ianmc/Downloads/PsilocybinLabs - Subscription Agreement for \\\\$0.50 Share Offering \\(1\\).DOCX\" ./sample_agreement.docx)",
+      "Read(//c/c/Users/ianmc/OneDrive/Documents/Claude/**)",
+      "Bash(unzip -o sample_agreement.docx -d extracted/)"
+    ]
+  }
+}

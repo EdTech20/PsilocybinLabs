@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AutoSubDoc</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-mark">AS</div>
+    <div>
+      <div class="brand-title">AutoSubDoc</div>
+      <div class="brand-sub">Subscription document portals, one per deal.</div>
+    </div>
+  </div>
+  <a class="btn ghost" href="/admin">Admin</a>
+</header>
+
+<main class="layout deals-layout">
+  <section class="card deals-card">
+    <h2>Available offerings</h2>
+    <p class="help">Each row below is a separate offering with its own subscription document, filings folder, master spreadsheet, and notification email. Click an offering to open its investor portal. Use <a href="/admin">Admin</a> to upload a new deal.</p>
+    <div id="deals" class="deal-grid"></div>
+    <p id="emptyState" class="help small" hidden>No deals configured yet. <a href="/admin">Upload a subscription document</a> to create your first offering.</p>
+  </section>
+</main>
+
+<script>
+fetch('/api/deals').then(r => r.json()).then(({ deals }) => {
+  const root = document.getElementById('deals');
+  const empty = document.getElementById('emptyState');
+  if (!deals || !deals.length) { empty.hidden = false; return; }
+  for (const d of deals) {
+    const fmt = (n, c) => Number(n).toLocaleString('en-CA', { style:'currency', currency:(c||'CAD') });
+    const a = document.createElement('a');
+    a.href = `/d/${encodeURIComponent(d.slug)}/`;
+    a.className = 'deal-card';
+    a.innerHTML = `
+      <div class="deal-name">${d.displayName || d.slug}</div>
+      <div class="deal-issuer">${d.issuer || ''}</div>
+      <div class="deal-meta"><span>${fmt(d.unitPrice, d.currency)} per ${d.unitNamePlural ? d.unitNamePlural.replace(/s$/,'') : 'unit'}</span><span class="deal-slug">/d/${d.slug}</span></div>`;
+    root.appendChild(a);
+  }
+});
+</script>
+</body>
+</html>
