@@ -220,7 +220,54 @@ function wireConditionals() {
   form.executionDate.valueAsDate = new Date();
 
   // Live summary + review
-  form.addEventListener('input', () => renderSummary());
+  form.addEventListener('input', () => {
+    renderSummary();
+    saveToLocalStorage();
+  });
+}
+
+/* ---------- Local Storage ---------- */
+const LS_KEY = 'autosubdoc_form_state';
+
+function saveToLocalStorage() {
+  const data = collect();
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+function restoreFromLocalStorage() {
+  const saved = localStorage.getItem(LS_KEY);
+  if (!saved) return;
+  try {
+    const data = JSON.parse(saved);
+    for (const el of form.elements) {
+      if (!el.name) continue;
+      const val = data[el.name];
+      if (val === undefined) continue;
+
+      if (el.type === 'checkbox') {
+        if (el.name === 'aiCategories' || el.name === 'usAiCategories') {
+          if (Array.isArray(val) && val.includes(el.value)) {
+            el.checked = true;
+          }
+        } else {
+          el.checked = !!val;
+        }
+      } else if (el.type === 'radio') {
+        if (el.value === String(val)) {
+          el.checked = true;
+        }
+      } else {
+        el.value = val;
+      }
+    }
+    // Re-trigger conditionals
+    if (form.entityType) form.entityType.dispatchEvent(new Event('change'));
+    form.querySelectorAll('input[name=hasDisclosedPrincipal]:checked').forEach(r => r.dispatchEvent(new Event('change')));
+    form.querySelectorAll('input[name=exemptionCategory]:checked').forEach(r => r.dispatchEvent(new Event('change')));
+    if (form.numberOfShares) form.numberOfShares.dispatchEvent(new Event('input'));
+  } catch (e) {
+    console.error('Failed to restore from local storage', e);
+  }
 }
 
 /* ---------- Summary & review ---------- */
@@ -709,6 +756,7 @@ async function init() {
   populateJurisdictions();
   populateAI();
   wireConditionals();
+  restoreFromLocalStorage();
   renderStepper();
   renderSummary();
 
