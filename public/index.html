@@ -2249,27 +2249,36 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   function clearStatus() { status.hidden = true; status.textContent = ''; }
 
-  /* ============== Storage abstraction (window.storage with shared:true) ============== */
-  // Falls back to a no-op if storage API is missing (e.g. opened as plain file).
+  /* ============== Storage abstraction (standard localStorage) ============== */
   const STORE = {
     async set(key, value) {
-      if (typeof window.storage === 'undefined') return null;
-      try { return await window.storage.set(key, JSON.stringify(value), true); }
-      catch (e) { console.warn('storage.set failed', key, e); return null; }
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        console.warn('localStorage.setItem failed', key, e);
+        return null;
+      }
     },
     async get(key) {
-      if (typeof window.storage === 'undefined') return null;
       try {
-        const r = await window.storage.get(key, true);
-        return r ? JSON.parse(r.value) : null;
-      } catch (e) { return null; }
+        const r = window.localStorage.getItem(key);
+        return r ? JSON.parse(r) : null;
+      } catch (e) {
+        return null;
+      }
     },
     async list(prefix) {
-      if (typeof window.storage === 'undefined') return [];
       try {
-        const r = await window.storage.list(prefix, true);
-        return r ? r.keys : [];
-      } catch (e) { return []; }
+        const keys = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k.startsWith(prefix)) keys.push(k);
+        }
+        return keys;
+      } catch (e) {
+        return [];
+      }
     },
     async getAll(prefix) {
       const keys = await this.list(prefix);
@@ -2281,10 +2290,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       return out;
     },
     async clearPrefix(prefix) {
-      if (typeof window.storage === 'undefined') return;
       const keys = await this.list(prefix);
       for (const k of keys) {
-        try { await window.storage.delete(k, true); } catch (e) {}
+        try { window.localStorage.removeItem(k); } catch (e) {}
       }
     }
   };
@@ -2949,61 +2957,103 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   async function queueDocusignRequest() {
     if (!lastFiling || !lastDocxBlob) return;
-    const envelopeId = newEnvelopeId();
+    
+    const btn = $('#actDocusign');
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<div class="action-icon">⌛</div><div class="action-title">Sending...</div><div class="action-desc">Please wait while we connect to DocuSign.</div>';
+    btn.disabled = true;
 
-    // Persist the request
-    const req = {
-      envelopeId,
-      filingId: lastFiling.filingId,
-      timestamp: new Date().toISOString(),
-      timestampLocal: new Date().toLocaleString('en-CA'),
-      status: 'queued',
-      subscriberName: lastFiling.subscriberName,
-      subscriberEmail: lastFiling.subscriberEmail,
-      issuerSignerName: DEAL.issuerSignerName,
-      issuerSignerEmail: DEAL.issuerSignerEmail,
-      filename: lastDocxFilename,
-      anchors: [
-        'Signature of Subscriber or Authorized Representative',
-        'Print the name of Subscriber',
-        'Authorized Signatory'
-      ],
-    };
-    await STORE.set('docusign:' + envelopeId, req);
+    try {
+      const buffer = await lastDocxBlob.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const base64 = btoa(binary);
 
-    // Mark the filing as having a queued envelope
-    lastFiling.docusignRequested = true;
-    lastFiling.docusignEnvelopeId = envelopeId;
-    await STORE.set('filings:' + lastFiling.filingId, lastFiling);
-    await logVisitor('docusign_queued', { envelopeId, filingId: lastFiling.filingId });
+      const res = await fetch(`/api/deals/${encodeURIComponent(DEAL.slug)}/docusign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          docxBase64: base64,
+          docxFilename: lastDocxFilename,
+          subscriberName: lastFiling.subscriberName,
+          subscriberEmail: lastFiling.subscriberEmail
+        })
+      });
 
-    // Render the modal
-    $('#envelopeCard').innerHTML = `
-      <div class="envelope-h">
-        <span class="env-id">${envelopeId}</span>
-        <span class="env-status">Queued · routing 1→2</span>
-      </div>
-      <div class="env-doc">
-        <div class="env-doc-icon">DOC</div>
-        <div>
-          <div class="env-doc-name">${escapeHtml(lastDocxFilename)}</div>
-          <div class="env-doc-meta">${(lastDocxBlob.size / 1024).toFixed(1)} kB · DOCX · 1 document, anchor-tabbed</div>
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'DocuSign API failed');
+      }
+
+      const data = await res.json();
+      const envelopeId = data.envelopeId;
+
+      const req = {
+        envelopeId,
+        filingId: lastFiling.filingId,
+        timestamp: new Date().toISOString(),
+        timestampLocal: new Date().toLocaleString('en-CA'),
+        status: 'sent',
+        subscriberName: lastFiling.subscriberName,
+        subscriberEmail: lastFiling.subscriberEmail,
+        issuerSignerName: DEAL.issuerSignerName,
+        issuerSignerEmail: DEAL.issuerSignerEmail,
+        filename: lastDocxFilename,
+        anchors: [
+          'Signature of Subscriber or Authorized Representative',
+          'Print the name of Subscriber',
+          'Authorized Signatory'
+        ],
+      };
+      await STORE.set('docusign:' + envelopeId, req);
+
+      lastFiling.docusignRequested = true;
+      lastFiling.docusignEnvelopeId = envelopeId;
+      await STORE.set('filings:' + lastFiling.filingId, lastFiling);
+      await logVisitor('docusign_sent', { envelopeId, filingId: lastFiling.filingId });
+
+      $('#envelopeCard').innerHTML = `
+        <div class="envelope-h">
+          <span class="env-id">${envelopeId}</span>
+          <span class="env-status" style="color:var(--ok)">Sent · check email</span>
         </div>
-      </div>
-      <ol class="routing">
-        <li><span class="seq">1</span><div>
-          <div class="role">Subscriber</div>
-          <div class="who">${escapeHtml(lastFiling.subscriberName)} · ${escapeHtml(lastFiling.subscriberEmail)}</div>
-          <div class="state">SignHere · DateSigned · anchor "Signature of Subscriber"</div>
-        </div></li>
-        <li><span class="seq">2</span><div>
-          <div class="role">Issuer (counter-sign)</div>
-          <div class="who">${escapeHtml(DEAL.issuerSignerName)} · ${escapeHtml(DEAL.issuerSignerEmail)}</div>
-          <div class="state">SignHere · anchor "Authorized Signatory"</div>
-        </div></li>
-      </ol>
-    `;
-    $('#docusignModal').hidden = false;
+        <div class="env-doc">
+          <div class="env-doc-icon">DOC</div>
+          <div>
+            <div class="env-doc-name">${escapeHtml(lastDocxFilename)}</div>
+            <div class="env-doc-meta">${(lastDocxBlob.size / 1024).toFixed(1)} kB · DOCX · 1 document, anchor-tabbed</div>
+          </div>
+        </div>
+        <ol class="routing">
+          <li><span class="seq">1</span><div>
+            <div class="role">Subscriber</div>
+            <div class="who">${escapeHtml(lastFiling.subscriberName)} · ${escapeHtml(lastFiling.subscriberEmail)}</div>
+            <div class="state">SignHere · DateSigned · anchor "Signature of Subscriber"</div>
+          </div></li>
+          <li><span class="seq">2</span><div>
+            <div class="role">Issuer (counter-sign)</div>
+            <div class="who">${escapeHtml(DEAL.issuerSignerName)} · ${escapeHtml(DEAL.issuerSignerEmail)}</div>
+            <div class="state">SignHere · anchor "Authorized Signatory"</div>
+          </div></li>
+        </ol>
+      `;
+      
+      const emailBtn = $('#dsEmailIssuer');
+      if (emailBtn) emailBtn.style.display = 'none';
+
+      $('#docusignModal').hidden = false;
+      
+      btn.innerHTML = '<div class="action-icon" style="color:var(--ok)">✓</div><div class="action-title">Sent via DocuSign</div><div class="action-desc">An email has been sent to ' + escapeHtml(lastFiling.subscriberEmail) + ' for signature.</div>';
+
+    } catch (err) {
+      console.error(err);
+      alert('Failed to send DocuSign request: ' + err.message);
+      btn.innerHTML = origText;
+      btn.disabled = false;
+    }
   }
 
   function emailIssuerSigner() {
