@@ -3876,7 +3876,11 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         const fallbackMessage = rawBody
           ? rawBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220)
           : '';
-        throw new Error(parsedBody?.error || fallbackMessage || 'DocuSign API failed');
+        const detailMessage =
+          parsedBody?.details?.message ||
+          parsedBody?.details?.error_description ||
+          parsedBody?.details?.errorCode;
+        throw new Error(detailMessage || parsedBody?.error || fallbackMessage || 'DocuSign API failed');
       }
 
       if (!parsedBody) {

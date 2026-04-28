@@ -134,7 +134,11 @@
           const fallbackMessage = rawBody
             ? rawBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220)
             : '';
-          throw new Error((result && result.error) || fallbackMessage || 'Failed to send signature request.');
+          const detailMessage =
+            result?.details?.message ||
+            result?.details?.error_description ||
+            result?.details?.errorCode;
+          throw new Error(detailMessage || (result && result.error) || fallbackMessage || 'Failed to send signature request.');
         }
       } catch (err) {
         console.error('DocuSign error:', err);

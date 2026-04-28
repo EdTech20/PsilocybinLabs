@@ -19,14 +19,20 @@
 
 const docusign = require('docusign-esign');
 
+const REQUIRED_DOCUSIGN_ENV_VARS = [
+  'DOCUSIGN_INTEGRATION_KEY',
+  'DOCUSIGN_USER_ID',
+  'DOCUSIGN_ACCOUNT_ID',
+  'DOCUSIGN_PRIVATE_KEY',
+  'ISSUER_SIGNER_EMAIL',
+];
+
+function getMissingDocusignConfigKeys() {
+  return REQUIRED_DOCUSIGN_ENV_VARS.filter(key => !process.env[key]);
+}
+
 function isDocusignConfigured() {
-  return Boolean(
-    process.env.DOCUSIGN_INTEGRATION_KEY &&
-      process.env.DOCUSIGN_USER_ID &&
-      process.env.DOCUSIGN_ACCOUNT_ID &&
-      process.env.DOCUSIGN_PRIVATE_KEY &&
-      process.env.ISSUER_SIGNER_EMAIL
-  );
+  return getMissingDocusignConfigKeys().length === 0;
 }
 
 async function getAccessToken() {
@@ -167,4 +173,4 @@ async function sendForSignature(args) {
   return { envelopeId: result.envelopeId, status: result.status };
 }
 
-module.exports = { sendForSignature, isDocusignConfigured };
+module.exports = { sendForSignature, isDocusignConfigured, getMissingDocusignConfigKeys };

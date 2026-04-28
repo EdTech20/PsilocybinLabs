@@ -10,7 +10,7 @@ const express = require('express');
 require('dotenv').config();
 
 const { generateFilledDocx } = require('./docgen');
-const { sendForSignature, isDocusignConfigured } = require('./docusign');
+const { sendForSignature, isDocusignConfigured, getMissingDocusignConfigKeys } = require('./docusign');
 const { validateSubmission } = require('./validation');
 const multer = require('multer');
 const TEMP_UPLOAD_DIR = path.join(os.tmpdir(), 'autosubdoc_uploads');
@@ -121,7 +121,10 @@ app.post('/api/deals/:slug/docusign', async (req, res) => {
     }
 
     if (!isDocusignConfigured()) {
-      console.error('[DocuSign] System not configured. Check .env variables.');
+      console.error(
+        '[DocuSign] System not configured. Missing env vars:',
+        getMissingDocusignConfigKeys().join(', ') || '(unknown)'
+      );
       return res.status(400).json({ error: 'DocuSign is not configured on this server.' });
     }
 
@@ -139,9 +142,22 @@ app.post('/api/deals/:slug/docusign', async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error('[DocuSign] Error detailed:', err);
-    res.status(500).json({ 
-      error: err.message || 'Failed to send for signature',
-      details: err.response ? err.response.body : null 
+    const details = err.response ? err.response.body : null;
+    const upstreamStatus = Number(
+      err.status ||
+      err.response?.statusCode ||
+      err.response?.status
+    );
+    const statusCode = upstreamStatus >= 400 ? upstreamStatus : 500;
+    const detailMessage =
+      (details && typeof details === 'object' && (details.message || details.error_description || details.errorCode)) ||
+      (typeof details === 'string' ? details : '') ||
+      err.message ||
+      'Failed to send for signature';
+
+    res.status(statusCode).json({
+      error: detailMessage,
+      details,
     });
   }
 });
