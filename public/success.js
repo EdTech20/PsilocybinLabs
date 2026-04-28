@@ -111,7 +111,17 @@
           })
         });
 
-        const result = await response.json();
+        const contentType = response.headers.get('content-type') || '';
+        const rawBody = await response.text();
+        let result = null;
+
+        if (contentType.includes('application/json')) {
+          try {
+            result = JSON.parse(rawBody);
+          } catch (parseErr) {
+            console.warn('DocuSign response was marked as JSON but could not be parsed.', parseErr);
+          }
+        }
 
         if (response.ok && result.envelopeId) {
           dsBtn.textContent = 'Request Sent ✓';
@@ -121,7 +131,10 @@
             false
           );
         } else {
-          throw new Error(result.error || 'Failed to send signature request.');
+          const fallbackMessage = rawBody
+            ? rawBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220)
+            : '';
+          throw new Error((result && result.error) || fallbackMessage || 'Failed to send signature request.');
         }
       } catch (err) {
         console.error('DocuSign error:', err);

@@ -5,6 +5,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const express = require('express');
 require('dotenv').config();
 
@@ -12,12 +13,14 @@ const { generateFilledDocx } = require('./docgen');
 const { sendForSignature, isDocusignConfigured } = require('./docusign');
 const { validateSubmission } = require('./validation');
 const multer = require('multer');
-const upload = multer({ dest: path.join(__dirname, 'temp_uploads') });
-if (!fs.existsSync(path.join(__dirname, 'temp_uploads'))) fs.mkdirSync(path.join(__dirname, 'temp_uploads'));
+const TEMP_UPLOAD_DIR = path.join(os.tmpdir(), 'autosubdoc_uploads');
+if (!fs.existsSync(TEMP_UPLOAD_DIR)) fs.mkdirSync(TEMP_UPLOAD_DIR, { recursive: true });
+const upload = multer({ dest: TEMP_UPLOAD_DIR });
 
 const PORT = process.env.PORT || 3001;
 const ROOT = path.join(__dirname, '..');
 const DEALS_DIR = path.join(ROOT, 'deals');
+const IS_VERCEL = Boolean(process.env.VERCEL);
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -75,21 +78,30 @@ app.post('/api/deals/:slug/submit', async (req, res) => {
     const errors = validateSubmission(req.body);
     if (errors.length) return res.status(400).json({ errors });
 
-    // The client sends the filled DOCX as base64 in multi-deal mode
-    const { docxBase64, docxFilename, subscriberName } = req.body;
-    
-    const filingsDir = path.join(DEALS_DIR, slug, 'filings');
-    if (!fs.existsSync(filingsDir)) fs.mkdirSync(filingsDir, { recursive: true });
+    const {
+      docxFilename,
+      filingId,
+      subscriberName,
+      subscriberEmail,
+      numberOfShares,
+    } = req.body;
 
-    const docxPath = path.join(filingsDir, docxFilename || `submission_${Date.now()}.docx`);
-    fs.writeFileSync(docxPath, Buffer.from(docxBase64, 'base64'));
-
-    // Simplified response to match what app.js expects
     res.json({
       ok: true,
-      filingId: `F-${Date.now()}`,
-      docxPath: docxPath,
-      email: { ok: true, state: 'saved', emlPath: 'Draft saved on server' }
+      filingId: filingId || `F-${Date.now()}`,
+      docxPath: docxFilename || `submission_${Date.now()}.docx`,
+      persisted: false,
+      storage: IS_VERCEL ? 'ephemeral' : 'client-managed',
+      email: {
+        ok: true,
+        state: 'client-managed',
+        emlPath: 'No server-side filing was written; the browser copy remains the source of truth.',
+      },
+      submission: {
+        subscriberName: subscriberName || '',
+        subscriberEmail: subscriberEmail || '',
+        numberOfShares: Number(numberOfShares) || 0,
+      },
     });
   } catch (err) {
     console.error('submit error:', err);
@@ -137,6 +149,12 @@ app.post('/api/deals/:slug/docusign', async (req, res) => {
 // Create a new deal (Admin)
 app.post('/api/admin/deals', upload.single('template'), (req, res) => {
   try {
+    if (IS_VERCEL) {
+      return res.status(501).json({
+        error: 'Admin deal creation is disabled on Vercel because the deployment filesystem is read-only.',
+      });
+    }
+
     const { displayName, slug, issuer, unitPrice, currency, notifyEmail, unitName, unitNamePlural, fromEmail, wireInstructions } = req.body;
     
     if (!displayName || !issuer) return res.status(400).json({ error: 'Display name and issuer are required' });
