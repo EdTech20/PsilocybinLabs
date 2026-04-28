@@ -67,6 +67,40 @@ function buildEnvelope({ documentBuffer, documentName, subscriberName, subscribe
     anchorXOffset: '260',
   });
 
+  // Form 45-106F9 risk acknowledgement rows: place subscriber initials in the
+  // "Your initials" column so the recipient can complete the risk form inside
+  // DocuSign even when the generated DOCX is sent with blank boxes.
+  const subscriberInitialTabs = [
+    // Form 45-106F9 section 2
+    'Risk of loss',
+    'Liquidity risk',
+    'Lack of information',
+    'Lack of advice',
+    // Form 45-106F9 section 3
+    'Your net income before taxes was more than $200,000',
+    'Your net income before taxes combined with your spouse’s was more than $300,000',
+    'Either alone or with your spouse, you own more than $1 million in cash and securities',
+    'Either alone or with your spouse, you may have net assets worth more than $5 million',
+  ].map((anchorString, index) =>
+    docusign.Text.constructFromObject({
+      anchorString,
+      anchorUnits: 'pixels',
+      anchorYOffset: '10',
+      anchorXOffset: '560',
+      width: '72',
+      height: '28',
+      font: 'helvetica',
+      fontSize: 'size10',
+      bold: 'true',
+      required: 'true',
+      maxLength: '4',
+      tabLabel: `subscriber_initials_${index + 1}`,
+      tooltip: 'Enter your initials',
+      anchorIgnoreIfNotPresent: 'true',
+      disableAutoSize: 'true',
+    })
+  );
+
   const scheduleASignTab = docusign.SignHere.constructFromObject({
     anchorString: 'Print the name of Subscriber',
     anchorUnits: 'pixels',
@@ -90,6 +124,7 @@ function buildEnvelope({ documentBuffer, documentName, subscriberName, subscribe
     tabs: docusign.Tabs.constructFromObject({
       signHereTabs: [subscriberSignTab, scheduleASignTab],
       dateSignedTabs: [subscriberDateTab],
+      textTabs: subscriberInitialTabs,
     }),
   });
 
