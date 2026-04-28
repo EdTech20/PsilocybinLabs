@@ -6,7 +6,7 @@
 <title>PsilocybinLabs — Private Placement Subscription Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
 :root {
   /* Core palette — dealmaker-inspired */
@@ -50,10 +50,10 @@
   --shadow-cta: 0 1px 2px rgba(232,65,46,.20), 0 12px 24px -8px rgba(255,91,73,.40);
 
   /* Type */
-  --display: "Sora", "Geist", "Söhne", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-  --sans: "Sora", "Geist", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --display: "Geist", "Söhne", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --sans: "Geist", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   --serif: "Instrument Serif", Georgia, serif;
-  --mono: "Sora", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
 
   /* Radii */
   --r-sm: 6px;
@@ -1865,24 +1865,19 @@ main { padding-bottom: 80px; }
 </div>
 
 <!-- Wire modal -->
-<div class="modal-overlay" id="wireModal" hidden style="font-family: 'Sora', sans-serif;">
-  <div class="modal" style="text-align: center; padding: 20px;">
-    <div style="width: 64px; height: 64px; background: #eff6ff; border-radius: 50%; display: grid; place-items: center; margin: 20px auto 20px; font-size: 28px; color: #2563eb;">
-      <i class="ph-fill ph-bank"></i>
+<div class="modal-overlay" id="wireModal" hidden>
+  <div class="modal">
+    <div class="modal-h">
+      <h3>Wire instructions</h3>
+      <button class="modal-close" data-close="wireModal">×</button>
     </div>
-    <div class="modal-h" style="border: none; justify-content: center; padding-bottom: 0;">
-      <h3 style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">Wire instructions</h3>
+    <div class="modal-b">
+      <p class="help" style="margin-bottom: 12px;">Funds are received by McMillan LLP, In Trust, until the subscription is accepted by the Company's board.</p>
+      <div class="wire-content" id="wireContent"></div>
     </div>
-    <div class="modal-b" style="padding-top: 10px;">
-      <p class="help" style="margin-bottom: 20px; font-size: 14px; color: #64748b; line-height: 1.6; font-family: 'Sora', sans-serif;">Funds are received by McMillan LLP, In Trust, until the subscription is accepted by the Company's board.</p>
-      <div class="wire-content" id="wireContent" style="text-align: left; background: #fff; padding: 24px; border-radius: 12px; border: 1px solid #f1f5f9; margin-bottom: 24px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); font-size: 14px; line-height: 1.8; color: #475569; letter-spacing: -0.2px; font-family: 'Sora', sans-serif; white-space: pre-wrap;"></div>
+    <div class="modal-f">
+      <button class="btn primary" data-close="wireModal">Got it</button>
     </div>
-    <div class="modal-f" style="border: none; background: transparent; padding-top: 0;">
-      <button class="btn primary" data-close="wireModal" style="width: 100%; padding: 14px; border-radius: 12px; font-weight: 700;">Got it</button>
-    </div>
-    <button class="modal-close" data-close="wireModal" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; color: #94a3b8; cursor: pointer;">&times;</button>
-  </div>
-</div>
   </div>
 </div>
 
@@ -2254,27 +2249,36 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   function clearStatus() { status.hidden = true; status.textContent = ''; }
 
-  /* ============== Storage abstraction (window.storage with shared:true) ============== */
-  // Falls back to a no-op if storage API is missing (e.g. opened as plain file).
+  /* ============== Storage abstraction (standard localStorage) ============== */
   const STORE = {
     async set(key, value) {
-      if (typeof window.storage === 'undefined') return null;
-      try { return await window.storage.set(key, JSON.stringify(value), true); }
-      catch (e) { console.warn('storage.set failed', key, e); return null; }
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        console.warn('localStorage.setItem failed', key, e);
+        return null;
+      }
     },
     async get(key) {
-      if (typeof window.storage === 'undefined') return null;
       try {
-        const r = await window.storage.get(key, true);
-        return r ? JSON.parse(r.value) : null;
-      } catch (e) { return null; }
+        const r = window.localStorage.getItem(key);
+        return r ? JSON.parse(r) : null;
+      } catch (e) {
+        return null;
+      }
     },
     async list(prefix) {
-      if (typeof window.storage === 'undefined') return [];
       try {
-        const r = await window.storage.list(prefix, true);
-        return r ? r.keys : [];
-      } catch (e) { return []; }
+        const keys = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k.startsWith(prefix)) keys.push(k);
+        }
+        return keys;
+      } catch (e) {
+        return [];
+      }
     },
     async getAll(prefix) {
       const keys = await this.list(prefix);
@@ -2286,10 +2290,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       return out;
     },
     async clearPrefix(prefix) {
-      if (typeof window.storage === 'undefined') return;
       const keys = await this.list(prefix);
       for (const k of keys) {
-        try { await window.storage.delete(k, true); } catch (e) {}
+        try { window.localStorage.removeItem(k); } catch (e) {}
       }
     }
   };
@@ -2954,75 +2957,68 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   async function queueDocusignRequest() {
     if (!lastFiling || !lastDocxBlob) return;
+    const envelopeId = newEnvelopeId();
 
-    const btn = $('#actDocusign');
-    const originalText = btn ? btn.querySelector('.action-title') : null;
-    if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; }
+    // Persist the request locally
+    const req = {
+      envelopeId,
+      filingId: lastFiling.filingId,
+      timestamp: new Date().toISOString(),
+      timestampLocal: new Date().toLocaleString('en-CA'),
+      status: 'queued',
+      subscriberName: lastFiling.subscriberName,
+      subscriberEmail: lastFiling.subscriberEmail,
+      issuerSignerName: DEAL.issuerSignerName,
+      issuerSignerEmail: DEAL.issuerSignerEmail,
+      filename: lastDocxFilename,
+      anchors: [
+        'Signature of Subscriber or Authorized Representative',
+        'Print the name of Subscriber',
+        'Authorized Signatory'
+      ],
+    };
+    await STORE.set('docusign:' + envelopeId, req);
 
-    try {
-      // Convert the in-memory blob to base64 for transmission
-      const arrayBuffer = await lastDocxBlob.arrayBuffer();
-      const uint8 = new Uint8Array(arrayBuffer);
-      let binary = '';
-      for (let i = 0; i < uint8.length; i++) binary += String.fromCharCode(uint8[i]);
-      const docxBase64 = btoa(binary);
+    // Mark the filing as having a queued envelope
+    lastFiling.docusignRequested = true;
+    lastFiling.docusignEnvelopeId = envelopeId;
+    await STORE.set('filings:' + lastFiling.filingId, lastFiling);
+    await logVisitor('docusign_queued', { envelopeId, filingId: lastFiling.filingId });
 
-      // Call the real DocuSign backend
-      const response = await fetch(`/api/deals/${encodeURIComponent(DEAL.slug)}/docusign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          docxBase64,
-          docxFilename: lastDocxFilename,
-          subscriberName: lastFiling.subscriberName,
-          subscriberEmail: lastFiling.subscriberEmail,
-        }),
-      });
+    // Render the modal
+    $('#envelopeCard').innerHTML = `
+      <div class="envelope-h">
+        <span class="env-id">${envelopeId}</span>
+        <span class="env-status">Queued · routing 1→2</span>
+      </div>
+      <div class="env-doc">
+        <div class="env-doc-icon">DOC</div>
+        <div>
+          <div class="env-doc-name">${escapeHtml(lastDocxFilename)}</div>
+          <div class="env-doc-meta">${(lastDocxBlob.size / 1024).toFixed(1)} kB · DOCX · 1 document, anchor-tabbed</div>
+        </div>
+      </div>
+      <ol class="routing">
+        <li><span class="seq">1</span><div>
+          <div class="role">Subscriber</div>
+          <div class="who">${escapeHtml(lastFiling.subscriberName)} · ${escapeHtml(lastFiling.subscriberEmail)}</div>
+          <div class="state">SignHere · DateSigned · anchor "Signature of Subscriber"</div>
+        </div></li>
+        <li><span class="seq">2</span><div>
+          <div class="role">Issuer (counter-sign)</div>
+          <div class="who">${escapeHtml(DEAL.issuerSignerName)} · ${escapeHtml(DEAL.issuerSignerEmail)}</div>
+          <div class="state">SignHere · anchor "Authorized Signatory"</div>
+        </div></li>
+      </ol>
+      <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px; font-size: 0.9em;">
+        <strong>Note:</strong> Since this portal is running statically, clicking "Email Issuer" will open your computer's default mail app. If nothing happens, please download the DOCX and manually email it to ${escapeHtml(DEAL.notifyEmail)}.
+      </div>
+    `;
+    
+    const emailBtn = $('#dsEmailIssuer');
+    if (emailBtn) emailBtn.style.display = 'block';
 
-      const result = await response.json();
-
-      if (response.ok && result.envelopeId) {
-        // Persist the real envelope ID
-        lastFiling.docusignRequested = true;
-        lastFiling.docusignEnvelopeId = result.envelopeId;
-        await STORE.set('filings:' + lastFiling.filingId, lastFiling);
-        await logVisitor('docusign_sent', { envelopeId: result.envelopeId, filingId: lastFiling.filingId });
-
-        // Show the confirmation modal with real envelope info
-        $('#envelopeCard').innerHTML = `
-          <div class="envelope-h">
-            <span class="env-id">${result.envelopeId}</span>
-            <span class="env-status">Sent · routing 1→2</span>
-          </div>
-          <div class="env-doc">
-            <div class="env-doc-icon">DOC</div>
-            <div>
-              <div class="env-doc-name">${escapeHtml(lastDocxFilename)}</div>
-              <div class="env-doc-meta">${(lastDocxBlob.size / 1024).toFixed(1)} kB · DOCX · delivered via DocuSign API</div>
-            </div>
-          </div>
-          <ol class="routing">
-            <li><span class="seq">1</span><div>
-              <div class="role">Subscriber</div>
-              <div class="who">${escapeHtml(lastFiling.subscriberName)} · ${escapeHtml(lastFiling.subscriberEmail)}</div>
-              <div class="state">Email sent — please check inbox for signing link</div>
-            </div></li>
-            <li><span class="seq">2</span><div>
-              <div class="role">Issuer (counter-sign)</div>
-              <div class="who">Northward Capital · ian@northwardcap.com</div>
-              <div class="state">Will receive signing link after subscriber completes</div>
-            </div></li>
-          </ol>
-        `;
-        $('#docusignModal').hidden = false;
-      } else {
-        throw new Error(result.error || 'Failed to send DocuSign envelope.');
-      }
-    } catch (err) {
-      console.error('[portal] DocuSign error:', err);
-      alert('DocuSign request failed: ' + (err.message || err));
-      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-    }
+    $('#docusignModal').hidden = false;
   }
 
   function emailIssuerSigner() {
@@ -3203,43 +3199,16 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
 
   /* ============== Init ============== */
-  async function loadTemplate() {
-    // First try the server API (live deal template)
-    try {
-      const r = await fetch(`/api/deals/${encodeURIComponent(DEAL.slug)}/template.docx`);
-      if (r.ok) {
-        const buf = await r.arrayBuffer();
-        TEMPLATE_BYTES = new Uint8Array(buf);
-        console.log('[portal] Template loaded from server (' + TEMPLATE_BYTES.length + ' bytes)');
-        return;
-      }
-    } catch (e) {
-      console.warn('[portal] Server template fetch failed, falling back:', e);
+  function loadTemplate() {
+    if (!window.TEMPLATE_DOCX_BASE64 || window.TEMPLATE_DOCX_BASE64.length < 100) {
+      console.warn('Template not embedded; DOCX merge will fail.');
+      return;
     }
-    // Fallback: embedded base64 blob
-    if (window.TEMPLATE_DOCX_BASE64 && window.TEMPLATE_DOCX_BASE64.length >= 100) {
-      TEMPLATE_BYTES = base64ToUint8Array(window.TEMPLATE_DOCX_BASE64);
-      console.log('[portal] Template loaded from embedded base64.');
-    } else {
-      console.warn('[portal] No template available — DOCX merge will fail.');
-    }
+    TEMPLATE_BYTES = base64ToUint8Array(window.TEMPLATE_DOCX_BASE64);
   }
 
-  async function init() {
+  function init() {
     SESSION_ID = newSessionId();
-
-    // Load deal config from server, merge into DEAL
-    try {
-      const r = await fetch('/api/deals/' + encodeURIComponent(DEAL.slug) + '/config');
-      if (r.ok) {
-        const cfg = await r.json();
-        Object.assign(DEAL, cfg);
-        console.log('[portal] Deal config loaded from server:', DEAL);
-      }
-    } catch (e) {
-      console.warn('[portal] Could not load deal config from server, using defaults:', e);
-    }
-
     populateJurisdictions();
     populateCountriesAndProvinces();
     populateAI();
@@ -3249,7 +3218,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     wireNav();
     wireSuccessActions();
     wireOps();
-    await loadTemplate();
+    loadTemplate();
     logVisitor('page_view');
     // Default execution date today
     if (form.executionDate && !form.executionDate.value) {

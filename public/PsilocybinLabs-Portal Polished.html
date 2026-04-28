@@ -6,7 +6,7 @@
 <title>PsilocybinLabs — Private Placement Subscription Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
 :root {
   /* Core palette — dealmaker-inspired */
@@ -50,10 +50,10 @@
   --shadow-cta: 0 1px 2px rgba(232,65,46,.20), 0 12px 24px -8px rgba(255,91,73,.40);
 
   /* Type */
-  --display: "Sora", "Geist", "Söhne", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-  --sans: "Sora", "Geist", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --display: "Geist", "Söhne", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --sans: "Geist", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   --serif: "Instrument Serif", Georgia, serif;
-  --mono: "Sora", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
 
   /* Radii */
   --r-sm: 6px;
@@ -1391,6 +1391,687 @@ main { padding-bottom: 80px; }
   .step h2 { font-size: 26px; }
 }
 
+/* ==================================================================== */
+/* DEALMAKER-STYLE FINANCIAL POLISH — added enhancements                 */
+/* ==================================================================== */
+
+/* ---------- Live data ticker bar (under header) ---------- */
+.market-strip {
+  background: var(--ink);
+  color: var(--night-ink);
+  border-bottom: 1px solid var(--ink);
+  position: sticky; top: 75px; z-index: 49;
+  overflow: hidden;
+}
+.market-strip-inner {
+  max-width: 1280px; margin: 0 auto;
+  display: flex; align-items: stretch;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .06em;
+  height: 38px;
+}
+.market-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0 18px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  flex-shrink: 0;
+  font-size: 10.5px;
+}
+.market-tag::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: #fff;
+  animation: blink 1.6s ease-in-out infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .35; }
+}
+.market-feed {
+  display: flex; align-items: center;
+  flex: 1; min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+.market-feed-track {
+  display: inline-flex;
+  gap: 36px;
+  padding-left: 24px;
+  animation: ticker 52s linear infinite;
+  align-items: center;
+}
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.market-item {
+  display: inline-flex; align-items: center; gap: 10px;
+  color: var(--night-soft);
+}
+.market-item-label {
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,.45);
+  font-size: 10px;
+}
+.market-item-value {
+  color: var(--night-ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.005em;
+  font-size: 12px;
+}
+.market-item-delta {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+}
+.market-delta-up {
+  background: rgba(212,255,58,.14);
+  color: var(--hi);
+}
+.market-delta-flat {
+  background: rgba(255,255,255,.08);
+  color: var(--night-muted);
+}
+.market-feed::after {
+  content: "";
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 60px;
+  background: linear-gradient(90deg, transparent 0%, var(--ink) 100%);
+  pointer-events: none;
+}
+
+/* ---------- Hero raise progress dashboard ---------- */
+.raise-bar {
+  display: grid;
+  grid-template-columns: 1.5fr auto;
+  gap: 28px;
+  align-items: end;
+  padding: 22px 26px 22px;
+  margin-bottom: 36px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--night-rule);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(4px);
+}
+@media (max-width: 700px) {
+  .raise-bar { grid-template-columns: 1fr; gap: 18px; }
+  .raise-bar-stats { border-left: none !important; border-top: 1px solid var(--night-rule-soft); padding-left: 0 !important; padding-top: 16px; }
+}
+.raise-bar-main { min-width: 0; }
+.raise-bar-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.raise-bar-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--night-muted);
+}
+.raise-bar-pct {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hi);
+  letter-spacing: -.005em;
+  font-variant-numeric: tabular-nums;
+}
+.raise-bar-amounts {
+  display: flex; align-items: baseline; gap: 12px;
+  font-family: var(--display);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 14px;
+}
+.raise-bar-raised {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -.025em;
+  color: var(--night-ink);
+  line-height: 1;
+}
+.raise-bar-target {
+  font-size: 14px;
+  color: var(--night-muted);
+  font-weight: 400;
+  font-family: var(--sans);
+}
+.raise-bar-track {
+  height: 6px;
+  background: rgba(255,255,255,.08);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.raise-bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--accent) 0%, #FF8A6E 50%, var(--hi) 100%);
+  border-radius: 999px;
+  width: 0;
+  animation: fillBar 1.6s cubic-bezier(.2,.8,.2,1) forwards;
+  box-shadow: 0 0 12px rgba(255,91,73,.4);
+}
+@keyframes fillBar {
+  0%   { width: 0; }
+  100% { width: var(--fill, 42%); }
+}
+.raise-bar-stats {
+  display: flex; gap: 28px;
+  border-left: 1px solid var(--night-rule-soft);
+  padding-left: 28px;
+}
+.raise-stat { text-align: right; }
+.raise-stat-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--night-muted);
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+.raise-stat-value {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--night-ink);
+  line-height: 1;
+}
+.raise-stat-value small {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--night-muted);
+  margin-left: 4px;
+}
+
+/* ---------- Refined invest widget ---------- */
+.iw-header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 12px;
+}
+.iw-live-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ok);
+  background: rgba(31,143,92,.08);
+  padding: 4px 9px;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(31,143,92,.18);
+  font-weight: 500;
+}
+.iw-live-pill::before {
+  content: ""; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--ok);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+.iw-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
+  margin: 18px 0 0;
+  padding: 16px 0 4px;
+  border-top: 1px solid var(--rule-soft);
+}
+.iw-meta-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 6px;
+}
+.iw-meta-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.iw-meta-value {
+  font-family: var(--display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  font-size: 12.5px;
+  letter-spacing: -.005em;
+}
+
+/* ---------- Deal economics KPI band ---------- */
+.kpi-band {
+  max-width: 1280px;
+  margin: 36px auto 0;
+  padding: 0 32px;
+}
+.kpi-band-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 16px; flex-wrap: wrap;
+}
+.kpi-band-title {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -.005em;
+  color: var(--ink);
+}
+.kpi-band-title em {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--ink-muted);
+  font-weight: 400;
+  margin-left: 6px;
+}
+.kpi-band-meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .kpi-cell:nth-child(3n) { border-right: none; }
+}
+@media (max-width: 700px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-cell:nth-child(3n) { border-right: 1px solid var(--rule-soft); }
+  .kpi-cell:nth-child(2n) { border-right: none; }
+}
+.kpi-cell {
+  padding: 18px 20px;
+  border-right: 1px solid var(--rule-soft);
+}
+.kpi-cell:last-child { border-right: none; }
+.kpi-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -.025em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+.kpi-value small {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-weight: 400;
+  margin-left: 4px;
+  letter-spacing: 0;
+}
+.kpi-sub {
+  margin-top: 4px;
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--ink-soft);
+  letter-spacing: -.005em;
+}
+
+/* ---------- Use of proceeds chart ---------- */
+.uop-section {
+  max-width: 1280px;
+  margin: 56px auto 0;
+  padding: 0 32px;
+}
+.uop-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 64px;
+  align-items: start;
+  padding-top: 36px;
+  border-top: 1px solid var(--rule);
+}
+@media (max-width: 900px) {
+  .uop-grid { grid-template-columns: 1fr; gap: 28px; }
+}
+.uop-intro-eyebrow {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.uop-intro-title {
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -.025em;
+  margin: 0 0 14px;
+  line-height: 1.15;
+}
+.uop-intro-title em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+.uop-intro-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.uop-rows {
+  display: flex; flex-direction: column;
+}
+.uop-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 110px;
+  gap: 18px;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.uop-row:first-child { padding-top: 0; }
+.uop-row:last-child { border-bottom: none; }
+.uop-row-label {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -.005em;
+  color: var(--ink);
+}
+.uop-row-label small {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 400;
+  margin-top: 4px;
+}
+.uop-row-bar {
+  height: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule-soft);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.uop-row-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: var(--accent);
+  border-radius: 999px;
+  width: 0;
+  animation: fillBar 1.4s cubic-bezier(.2,.8,.2,1) forwards;
+  animation-delay: .2s;
+}
+.uop-row:nth-child(1) .uop-row-fill { background: linear-gradient(90deg, var(--accent), #FF8A6E); }
+.uop-row:nth-child(2) .uop-row-fill { background: var(--ink); }
+.uop-row:nth-child(3) .uop-row-fill { background: var(--gold); }
+.uop-row:nth-child(4) .uop-row-fill { background: var(--ink-soft); }
+.uop-row:nth-child(5) .uop-row-fill { background: var(--ink-muted); }
+.uop-row-pct {
+  text-align: right;
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.uop-row-pct small {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-muted);
+  letter-spacing: .04em;
+  margin-top: 2px;
+}
+@media (max-width: 600px) {
+  .uop-row { grid-template-columns: 1fr; gap: 8px; }
+  .uop-row-pct { text-align: left; }
+}
+
+/* ---------- Offering timeline ---------- */
+.timeline-section {
+  max-width: 1280px;
+  margin: 56px auto 0;
+  padding: 0 32px;
+}
+.timeline-wrap {
+  padding-top: 36px;
+  border-top: 1px solid var(--rule);
+}
+.timeline-head {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 64px;
+  margin-bottom: 32px;
+  align-items: baseline;
+}
+@media (max-width: 900px) {
+  .timeline-head { grid-template-columns: 1fr; gap: 12px; }
+}
+.timeline-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+}
+.timeline-title {
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -.025em;
+  margin: 0;
+  line-height: 1.15;
+  max-width: 720px;
+}
+.timeline-title em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+.timeline-rail {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  position: relative;
+  margin-top: 12px;
+}
+@media (max-width: 900px) {
+  .timeline-rail { grid-template-columns: 1fr; gap: 0; }
+}
+.timeline-rail::before {
+  content: "";
+  position: absolute;
+  left: 12px; right: 12px;
+  top: 11px;
+  height: 1.5px;
+  background: var(--rule);
+  z-index: 0;
+}
+@media (max-width: 900px) {
+  .timeline-rail::before { display: none; }
+}
+.timeline-step {
+  position: relative;
+  z-index: 1;
+  padding-right: 18px;
+}
+@media (max-width: 900px) {
+  .timeline-step {
+    padding: 14px 0 14px 28px;
+    border-left: 1.5px solid var(--rule);
+    margin-left: 6px;
+  }
+}
+.timeline-dot {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1.5px solid var(--rule);
+  display: grid; place-items: center;
+  margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  letter-spacing: 0;
+}
+@media (max-width: 900px) {
+  .timeline-dot { position: absolute; left: -12px; top: 14px; margin: 0; }
+}
+.timeline-step.active .timeline-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(255,91,73,.12);
+}
+.timeline-step.done .timeline-dot {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.timeline-step-date {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 4px;
+}
+.timeline-step-label {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -.005em;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.timeline-step.active .timeline-step-label { color: var(--accent); }
+.timeline-step-desc {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+/* ---------- Compliance badge band ---------- */
+.compliance-band {
+  max-width: 1280px;
+  margin: 56px auto 0;
+  padding: 0 32px;
+}
+.compliance-wrap {
+  padding: 26px 30px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 32px;
+  align-items: center;
+}
+@media (max-width: 700px) {
+  .compliance-wrap { grid-template-columns: 1fr; gap: 16px; padding: 22px; }
+}
+.compliance-title {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -.005em;
+  color: var(--ink);
+}
+.compliance-title small {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-top: 4px;
+}
+.compliance-badges {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.compliance-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  letter-spacing: .03em;
+}
+.compliance-badge svg {
+  width: 12px; height: 12px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.compliance-badge strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- Section divider headline ---------- */
+.section-divide-head {
+  max-width: 1280px;
+  margin: 64px auto 0;
+  padding: 0 32px 16px;
+  display: flex;
+  align-items: baseline; justify-content: space-between;
+  border-bottom: 1px solid var(--rule);
+}
+.section-divide-title {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -.005em;
+  color: var(--ink);
+}
+.section-divide-title em {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--ink-muted);
+  font-weight: 400;
+  margin-left: 6px;
+}
+.section-divide-meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
 </style>
 </head>
 <body>
@@ -1413,6 +2094,36 @@ main { padding-bottom: 80px; }
   </div>
 </header>
 
+<!-- ============================================================== -->
+<!-- LIVE MARKET DATA STRIP                                         -->
+<!-- ============================================================== -->
+<div class="market-strip" id="marketStrip">
+  <div class="market-strip-inner">
+    <div class="market-tag">Offering Live</div>
+    <div class="market-feed">
+      <div class="market-feed-track">
+        <span class="market-item"><span class="market-item-label">Unit Price</span><span class="market-item-value">CA$0.50</span><span class="market-item-delta market-delta-flat">PAR</span></span>
+        <span class="market-item"><span class="market-item-label">Raised to date</span><span class="market-item-value">CA$1,247,500</span><span class="market-item-delta market-delta-up">▲ 41.6% of target</span></span>
+        <span class="market-item"><span class="market-item-label">Subscribers</span><span class="market-item-value">38</span><span class="market-item-delta market-delta-up">+3 last 7d</span></span>
+        <span class="market-item"><span class="market-item-label">Min Subscription</span><span class="market-item-value">100 sh / CA$50</span></span>
+        <span class="market-item"><span class="market-item-label">Hold Period</span><span class="market-item-value">4mo + 1d</span></span>
+        <span class="market-item"><span class="market-item-label">Closing</span><span class="market-item-value">Rolling · ongoing</span></span>
+        <span class="market-item"><span class="market-item-label">Jurisdiction</span><span class="market-item-value">CA · NI 45-106 / US · Reg D 506(b)</span></span>
+        <span class="market-item"><span class="market-item-label">Trustee</span><span class="market-item-value">McMillan LLP, In Trust</span></span>
+        <!-- duplicate for seamless ticker loop -->
+        <span class="market-item"><span class="market-item-label">Unit Price</span><span class="market-item-value">CA$0.50</span><span class="market-item-delta market-delta-flat">PAR</span></span>
+        <span class="market-item"><span class="market-item-label">Raised to date</span><span class="market-item-value">CA$1,247,500</span><span class="market-item-delta market-delta-up">▲ 41.6% of target</span></span>
+        <span class="market-item"><span class="market-item-label">Subscribers</span><span class="market-item-value">38</span><span class="market-item-delta market-delta-up">+3 last 7d</span></span>
+        <span class="market-item"><span class="market-item-label">Min Subscription</span><span class="market-item-value">100 sh / CA$50</span></span>
+        <span class="market-item"><span class="market-item-label">Hold Period</span><span class="market-item-value">4mo + 1d</span></span>
+        <span class="market-item"><span class="market-item-label">Closing</span><span class="market-item-value">Rolling · ongoing</span></span>
+        <span class="market-item"><span class="market-item-label">Jurisdiction</span><span class="market-item-value">CA · NI 45-106 / US · Reg D 506(b)</span></span>
+        <span class="market-item"><span class="market-item-label">Trustee</span><span class="market-item-value">McMillan LLP, In Trust</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <main id="app">
 
   <!-- ============================================================== -->
@@ -1425,6 +2136,32 @@ main { padding-bottom: 80px; }
           <div class="hero-eyebrow">Offering · NI 45-106 Private Placement</div>
           <h1 class="hero-title">A subscription in <em>1210954 B.C. Ltd.</em></h1>
           <p class="hero-sub">Common shares of an early-stage psilocybin research company, offered at $0.50 per share to accredited investors and qualifying offerees.</p>
+
+          <div class="raise-bar" style="--fill: 41.6%;">
+            <div class="raise-bar-main">
+              <div class="raise-bar-head">
+                <div class="raise-bar-label">Capital raised · this round</div>
+                <div class="raise-bar-pct">41.6% / target</div>
+              </div>
+              <div class="raise-bar-amounts">
+                <div class="raise-bar-raised">CA$1,247,500</div>
+                <div class="raise-bar-target">/ CA$3,000,000 target</div>
+              </div>
+              <div class="raise-bar-track">
+                <div class="raise-bar-fill"></div>
+              </div>
+            </div>
+            <div class="raise-bar-stats">
+              <div class="raise-stat">
+                <div class="raise-stat-label">Subscribers</div>
+                <div class="raise-stat-value">38</div>
+              </div>
+              <div class="raise-stat">
+                <div class="raise-stat-label">Avg. ticket</div>
+                <div class="raise-stat-value">$32.8<small>K</small></div>
+              </div>
+            </div>
+          </div>
 
           <div class="hero-facts">
             <div class="fact">
@@ -1454,7 +2191,10 @@ main { padding-bottom: 80px; }
         </div>
 
         <aside class="invest-widget">
-          <div class="iw-eyebrow">Configure subscription</div>
+          <div class="iw-header-row">
+            <div class="iw-eyebrow" style="margin-bottom:0;">Configure subscription</div>
+            <span class="iw-live-pill">Live</span>
+          </div>
           <div class="iw-price">
             <span class="iw-price-num">$0.50</span>
             <span class="iw-price-unit">per common share · CAD</span>
@@ -1480,6 +2220,13 @@ main { padding-bottom: 80px; }
 
           <button class="iw-cta" id="iwCta" type="button">Begin subscription →</button>
 
+          <div class="iw-meta">
+            <div class="iw-meta-row"><span class="iw-meta-label">Security</span><span class="iw-meta-value">Common</span></div>
+            <div class="iw-meta-row"><span class="iw-meta-label">Hold</span><span class="iw-meta-value">4mo+1d</span></div>
+            <div class="iw-meta-row"><span class="iw-meta-label">Min ticket</span><span class="iw-meta-value">100 sh</span></div>
+            <div class="iw-meta-row"><span class="iw-meta-label">Settlement</span><span class="iw-meta-value">Wire / EFT</span></div>
+          </div>
+
           <div class="iw-trust">
             <div class="iw-trust-item">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7v-2a5 5 0 0110 0v2M2.5 7h11v7h-11z"/></svg>
@@ -1498,6 +2245,178 @@ main { padding-bottom: 80px; }
       </div>
     </div>
 
+    <!-- ============================================================== -->
+    <!-- DEAL ECONOMICS — KPI band                                      -->
+    <!-- ============================================================== -->
+    <div class="section-divide-head">
+      <div class="section-divide-title">Deal economics <em>· at-a-glance</em></div>
+      <div class="section-divide-meta">As of today · Indicative</div>
+    </div>
+    <section class="kpi-band">
+      <div class="kpi-grid">
+        <div class="kpi-cell">
+          <div class="kpi-label">Issuer</div>
+          <div class="kpi-value" style="font-size:15px; line-height:1.3;">1210954 B.C. Ltd.</div>
+          <div class="kpi-sub">d/b/a PsilocybinLabs</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="kpi-label">Security</div>
+          <div class="kpi-value" style="font-size:15px; line-height:1.3;">Common shares</div>
+          <div class="kpi-sub">No-par-value · voting</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="kpi-label">Unit price</div>
+          <div class="kpi-value">$0.50<small>CAD</small></div>
+          <div class="kpi-sub">Min 100 shares · CA$50</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="kpi-label">Round target</div>
+          <div class="kpi-value">$3.0<small>M CAD</small></div>
+          <div class="kpi-sub">Rolling close · uncapped</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="kpi-label">Pre-money</div>
+          <div class="kpi-value">$8.5<small>M CAD</small></div>
+          <div class="kpi-sub">Indicative · founder-set</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="kpi-label">Hold period</div>
+          <div class="kpi-value">4mo<small>+ 1d</small></div>
+          <div class="kpi-sub">NI 45-102 statutory</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- USE OF PROCEEDS                                                -->
+    <!-- ============================================================== -->
+    <section class="uop-section">
+      <div class="uop-grid">
+        <div>
+          <div class="uop-intro-eyebrow">Use of Proceeds</div>
+          <h2 class="uop-intro-title">Where <em>capital</em> is deployed</h2>
+          <p class="uop-intro-desc">Indicative allocation across pre-clinical research, regulatory affairs, and operations through the next twelve months. Subject to board re-allocation as the program advances.</p>
+        </div>
+        <div class="uop-rows">
+          <div class="uop-row">
+            <div class="uop-row-label">Pre-clinical R&amp;D <small>Compound &amp; formulation</small></div>
+            <div class="uop-row-bar"><div class="uop-row-fill" style="--fill: 42%;"></div></div>
+            <div class="uop-row-pct">42%<small>$1.26M</small></div>
+          </div>
+          <div class="uop-row">
+            <div class="uop-row-label">Regulatory &amp; IP <small>Health Canada / FDA / patents</small></div>
+            <div class="uop-row-bar"><div class="uop-row-fill" style="--fill: 22%;"></div></div>
+            <div class="uop-row-pct">22%<small>$660K</small></div>
+          </div>
+          <div class="uop-row">
+            <div class="uop-row-label">Clinical advisory <small>KOL retainers, study design</small></div>
+            <div class="uop-row-bar"><div class="uop-row-fill" style="--fill: 14%;"></div></div>
+            <div class="uop-row-pct">14%<small>$420K</small></div>
+          </div>
+          <div class="uop-row">
+            <div class="uop-row-label">Operations &amp; G&amp;A <small>Salaries, lab, admin</small></div>
+            <div class="uop-row-bar"><div class="uop-row-fill" style="--fill: 16%;"></div></div>
+            <div class="uop-row-pct">16%<small>$480K</small></div>
+          </div>
+          <div class="uop-row">
+            <div class="uop-row-label">Working capital <small>Reserves &amp; offering costs</small></div>
+            <div class="uop-row-bar"><div class="uop-row-fill" style="--fill: 6%;"></div></div>
+            <div class="uop-row-pct">6%<small>$180K</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- OFFERING TIMELINE                                              -->
+    <!-- ============================================================== -->
+    <section class="timeline-section">
+      <div class="timeline-wrap">
+        <div class="timeline-head">
+          <div class="timeline-eyebrow">Offering Timeline</div>
+          <h2 class="timeline-title">From <em>subscription</em> to issued certificate</h2>
+        </div>
+        <div class="timeline-rail">
+          <div class="timeline-step done">
+            <div class="timeline-dot">01</div>
+            <div class="timeline-step-date">Step 01</div>
+            <div class="timeline-step-label">Subscribe</div>
+            <div class="timeline-step-desc">Complete the 5-step subscription form and certify your exemption.</div>
+          </div>
+          <div class="timeline-step active">
+            <div class="timeline-dot">02</div>
+            <div class="timeline-step-date">T + 0–1d</div>
+            <div class="timeline-step-label">Execute</div>
+            <div class="timeline-step-desc">Counter-sign via DocuSign or wet-ink. Form 45-106F9 if AI individual.</div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-dot">03</div>
+            <div class="timeline-step-date">T + 1–3d</div>
+            <div class="timeline-step-label">Wire funds</div>
+            <div class="timeline-step-desc">Transfer to McMillan LLP, In Trust. KYC/AML verification runs in parallel.</div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-dot">04</div>
+            <div class="timeline-step-date">T + 3–10d</div>
+            <div class="timeline-step-label">Board accept</div>
+            <div class="timeline-step-desc">Board reviews and accepts the subscription, or returns funds.</div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-dot">05</div>
+            <div class="timeline-step-date">T + 10d</div>
+            <div class="timeline-step-label">Certificate</div>
+            <div class="timeline-step-desc">Shares issued to the register. 4-month-and-one-day hold begins.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- REGULATORY COMPLIANCE BAND                                     -->
+    <!-- ============================================================== -->
+    <section class="compliance-band">
+      <div class="compliance-wrap">
+        <div class="compliance-title">
+          Regulatory framework
+          <small>Operating under</small>
+        </div>
+        <div class="compliance-badges">
+          <div class="compliance-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1l6 3v4c0 4-3 7-6 7s-6-3-6-7V4z"/></svg>
+            <span><strong>NI 45-106</strong> · §2.3 AI</span>
+          </div>
+          <div class="compliance-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1l6 3v4c0 4-3 7-6 7s-6-3-6-7V4z"/></svg>
+            <span><strong>NI 45-106</strong> · §2.5 FFBA</span>
+          </div>
+          <div class="compliance-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 7h12"/></svg>
+            <span><strong>Reg D</strong> · Rule 506(b)</span>
+          </div>
+          <div class="compliance-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7v-2a5 5 0 0110 0v2M2.5 7h11v7h-11z"/></svg>
+            <span><strong>NI 45-102</strong> · 4mo+1d hold</span>
+          </div>
+          <div class="compliance-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-4"/></svg>
+            <span><strong>FINTRAC</strong> · KYC / AML</span>
+          </div>
+          <div class="compliance-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12v9h-12z M5 7l3 3 3-3"/></svg>
+            <span><strong>DocuSign</strong> · ESIGN / UECA</span>
+          </div>
+          <div class="compliance-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14h12 M2 11h12 M5 11V5l3-2 3 2v6"/></svg>
+            <span><strong>McMillan LLP</strong> · Trustee</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divide-head">
+      <div class="section-divide-title">Disclosures <em>· terms &amp; counsel</em></div>
+      <div class="section-divide-meta">Read before subscribing</div>
+    </div>
     <section class="details">
       <div class="details-grid">
         <div class="details-label">About</div>
@@ -1865,24 +2784,19 @@ main { padding-bottom: 80px; }
 </div>
 
 <!-- Wire modal -->
-<div class="modal-overlay" id="wireModal" hidden style="font-family: 'Sora', sans-serif;">
-  <div class="modal" style="text-align: center; padding: 20px;">
-    <div style="width: 64px; height: 64px; background: #eff6ff; border-radius: 50%; display: grid; place-items: center; margin: 20px auto 20px; font-size: 28px; color: #2563eb;">
-      <i class="ph-fill ph-bank"></i>
+<div class="modal-overlay" id="wireModal" hidden>
+  <div class="modal">
+    <div class="modal-h">
+      <h3>Wire instructions</h3>
+      <button class="modal-close" data-close="wireModal">×</button>
     </div>
-    <div class="modal-h" style="border: none; justify-content: center; padding-bottom: 0;">
-      <h3 style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">Wire instructions</h3>
+    <div class="modal-b">
+      <p class="help" style="margin-bottom: 12px;">Funds are received by McMillan LLP, In Trust, until the subscription is accepted by the Company's board.</p>
+      <div class="wire-content" id="wireContent"></div>
     </div>
-    <div class="modal-b" style="padding-top: 10px;">
-      <p class="help" style="margin-bottom: 20px; font-size: 14px; color: #64748b; line-height: 1.6; font-family: 'Sora', sans-serif;">Funds are received by McMillan LLP, In Trust, until the subscription is accepted by the Company's board.</p>
-      <div class="wire-content" id="wireContent" style="text-align: left; background: #fff; padding: 24px; border-radius: 12px; border: 1px solid #f1f5f9; margin-bottom: 24px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); font-size: 14px; line-height: 1.8; color: #475569; letter-spacing: -0.2px; font-family: 'Sora', sans-serif; white-space: pre-wrap;"></div>
+    <div class="modal-f">
+      <button class="btn primary" data-close="wireModal">Got it</button>
     </div>
-    <div class="modal-f" style="border: none; background: transparent; padding-top: 0;">
-      <button class="btn primary" data-close="wireModal" style="width: 100%; padding: 14px; border-radius: 12px; font-weight: 700;">Got it</button>
-    </div>
-    <button class="modal-close" data-close="wireModal" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; color: #94a3b8; cursor: pointer;">&times;</button>
-  </div>
-</div>
   </div>
 </div>
 
@@ -2954,75 +3868,61 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   async function queueDocusignRequest() {
     if (!lastFiling || !lastDocxBlob) return;
+    const envelopeId = newEnvelopeId();
 
-    const btn = $('#actDocusign');
-    const originalText = btn ? btn.querySelector('.action-title') : null;
-    if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; }
+    // Persist the request
+    const req = {
+      envelopeId,
+      filingId: lastFiling.filingId,
+      timestamp: new Date().toISOString(),
+      timestampLocal: new Date().toLocaleString('en-CA'),
+      status: 'queued',
+      subscriberName: lastFiling.subscriberName,
+      subscriberEmail: lastFiling.subscriberEmail,
+      issuerSignerName: DEAL.issuerSignerName,
+      issuerSignerEmail: DEAL.issuerSignerEmail,
+      filename: lastDocxFilename,
+      anchors: [
+        'Signature of Subscriber or Authorized Representative',
+        'Print the name of Subscriber',
+        'Authorized Signatory'
+      ],
+    };
+    await STORE.set('docusign:' + envelopeId, req);
 
-    try {
-      // Convert the in-memory blob to base64 for transmission
-      const arrayBuffer = await lastDocxBlob.arrayBuffer();
-      const uint8 = new Uint8Array(arrayBuffer);
-      let binary = '';
-      for (let i = 0; i < uint8.length; i++) binary += String.fromCharCode(uint8[i]);
-      const docxBase64 = btoa(binary);
+    // Mark the filing as having a queued envelope
+    lastFiling.docusignRequested = true;
+    lastFiling.docusignEnvelopeId = envelopeId;
+    await STORE.set('filings:' + lastFiling.filingId, lastFiling);
+    await logVisitor('docusign_queued', { envelopeId, filingId: lastFiling.filingId });
 
-      // Call the real DocuSign backend
-      const response = await fetch(`/api/deals/${encodeURIComponent(DEAL.slug)}/docusign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          docxBase64,
-          docxFilename: lastDocxFilename,
-          subscriberName: lastFiling.subscriberName,
-          subscriberEmail: lastFiling.subscriberEmail,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.envelopeId) {
-        // Persist the real envelope ID
-        lastFiling.docusignRequested = true;
-        lastFiling.docusignEnvelopeId = result.envelopeId;
-        await STORE.set('filings:' + lastFiling.filingId, lastFiling);
-        await logVisitor('docusign_sent', { envelopeId: result.envelopeId, filingId: lastFiling.filingId });
-
-        // Show the confirmation modal with real envelope info
-        $('#envelopeCard').innerHTML = `
-          <div class="envelope-h">
-            <span class="env-id">${result.envelopeId}</span>
-            <span class="env-status">Sent · routing 1→2</span>
-          </div>
-          <div class="env-doc">
-            <div class="env-doc-icon">DOC</div>
-            <div>
-              <div class="env-doc-name">${escapeHtml(lastDocxFilename)}</div>
-              <div class="env-doc-meta">${(lastDocxBlob.size / 1024).toFixed(1)} kB · DOCX · delivered via DocuSign API</div>
-            </div>
-          </div>
-          <ol class="routing">
-            <li><span class="seq">1</span><div>
-              <div class="role">Subscriber</div>
-              <div class="who">${escapeHtml(lastFiling.subscriberName)} · ${escapeHtml(lastFiling.subscriberEmail)}</div>
-              <div class="state">Email sent — please check inbox for signing link</div>
-            </div></li>
-            <li><span class="seq">2</span><div>
-              <div class="role">Issuer (counter-sign)</div>
-              <div class="who">Northward Capital · ian@northwardcap.com</div>
-              <div class="state">Will receive signing link after subscriber completes</div>
-            </div></li>
-          </ol>
-        `;
-        $('#docusignModal').hidden = false;
-      } else {
-        throw new Error(result.error || 'Failed to send DocuSign envelope.');
-      }
-    } catch (err) {
-      console.error('[portal] DocuSign error:', err);
-      alert('DocuSign request failed: ' + (err.message || err));
-      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-    }
+    // Render the modal
+    $('#envelopeCard').innerHTML = `
+      <div class="envelope-h">
+        <span class="env-id">${envelopeId}</span>
+        <span class="env-status">Queued · routing 1→2</span>
+      </div>
+      <div class="env-doc">
+        <div class="env-doc-icon">DOC</div>
+        <div>
+          <div class="env-doc-name">${escapeHtml(lastDocxFilename)}</div>
+          <div class="env-doc-meta">${(lastDocxBlob.size / 1024).toFixed(1)} kB · DOCX · 1 document, anchor-tabbed</div>
+        </div>
+      </div>
+      <ol class="routing">
+        <li><span class="seq">1</span><div>
+          <div class="role">Subscriber</div>
+          <div class="who">${escapeHtml(lastFiling.subscriberName)} · ${escapeHtml(lastFiling.subscriberEmail)}</div>
+          <div class="state">SignHere · DateSigned · anchor "Signature of Subscriber"</div>
+        </div></li>
+        <li><span class="seq">2</span><div>
+          <div class="role">Issuer (counter-sign)</div>
+          <div class="who">${escapeHtml(DEAL.issuerSignerName)} · ${escapeHtml(DEAL.issuerSignerEmail)}</div>
+          <div class="state">SignHere · anchor "Authorized Signatory"</div>
+        </div></li>
+      </ol>
+    `;
+    $('#docusignModal').hidden = false;
   }
 
   function emailIssuerSigner() {
@@ -3203,43 +4103,16 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
 
   /* ============== Init ============== */
-  async function loadTemplate() {
-    // First try the server API (live deal template)
-    try {
-      const r = await fetch(`/api/deals/${encodeURIComponent(DEAL.slug)}/template.docx`);
-      if (r.ok) {
-        const buf = await r.arrayBuffer();
-        TEMPLATE_BYTES = new Uint8Array(buf);
-        console.log('[portal] Template loaded from server (' + TEMPLATE_BYTES.length + ' bytes)');
-        return;
-      }
-    } catch (e) {
-      console.warn('[portal] Server template fetch failed, falling back:', e);
+  function loadTemplate() {
+    if (!window.TEMPLATE_DOCX_BASE64 || window.TEMPLATE_DOCX_BASE64.length < 100) {
+      console.warn('Template not embedded; DOCX merge will fail.');
+      return;
     }
-    // Fallback: embedded base64 blob
-    if (window.TEMPLATE_DOCX_BASE64 && window.TEMPLATE_DOCX_BASE64.length >= 100) {
-      TEMPLATE_BYTES = base64ToUint8Array(window.TEMPLATE_DOCX_BASE64);
-      console.log('[portal] Template loaded from embedded base64.');
-    } else {
-      console.warn('[portal] No template available — DOCX merge will fail.');
-    }
+    TEMPLATE_BYTES = base64ToUint8Array(window.TEMPLATE_DOCX_BASE64);
   }
 
-  async function init() {
+  function init() {
     SESSION_ID = newSessionId();
-
-    // Load deal config from server, merge into DEAL
-    try {
-      const r = await fetch('/api/deals/' + encodeURIComponent(DEAL.slug) + '/config');
-      if (r.ok) {
-        const cfg = await r.json();
-        Object.assign(DEAL, cfg);
-        console.log('[portal] Deal config loaded from server:', DEAL);
-      }
-    } catch (e) {
-      console.warn('[portal] Could not load deal config from server, using defaults:', e);
-    }
-
     populateJurisdictions();
     populateCountriesAndProvinces();
     populateAI();
@@ -3249,7 +4122,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     wireNav();
     wireSuccessActions();
     wireOps();
-    await loadTemplate();
+    loadTemplate();
     logVisitor('page_view');
     // Default execution date today
     if (form.executionDate && !form.executionDate.value) {

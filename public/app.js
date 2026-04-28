@@ -942,12 +942,34 @@ async function startStripeCheckout(filing, data) {
 function showWireModal() {
   const wrap = document.createElement('div');
   wrap.className = 'modal-overlay';
+  wrap.style.cssText = "position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.45); display: grid; place-items: center; animation: fade-in 0.3s ease; font-family: 'Sora', sans-serif;";
+  
   const wire = (DEAL && DEAL.wireInstructions) ? DEAL.wireInstructions : WIRE_INSTRUCTIONS_FALLBACK;
-  wrap.innerHTML = `<div class="modal"><header><div class="filing-title">Wire transfer instructions</div><button class="modal-close">&times;</button></header><div class="modal-body"><pre style="white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.6;margin:0">${escapeHtml(wire)}</pre></div><footer><button class="btn primary" data-close>Got it</button></footer></div>`;
+  
+  wrap.innerHTML = `
+    <div style="background: #fff; border-radius: 20px; padding: 40px 36px; max-width: 500px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; position: relative;">
+      <div style="width: 64px; height: 64px; background: #eff6ff; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 20px; font-size: 28px; color: #2563eb;">
+        <i class="ph-fill ph-bank"></i>
+      </div>
+      
+      <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 10px; letter-spacing: -0.5px; display: block;">Wire instructions</h2>
+      <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 20px;">
+        Follow the instructions below to complete your wire transfer.
+      </p>
+
+      <div style="text-align: left; background: #fff; padding: 24px; border-radius: 12px; border: 1px solid #f1f5f9; margin-bottom: 24px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+        <div style="font-size: 14px; font-family: 'Sora', sans-serif; line-height: 1.8; color: #475569; margin: 0; white-space: pre-wrap; letter-spacing: -0.2px;">${escapeHtml(wire)}</div>
+      </div>
+
+      <button id="btn-wire-got-it" style="width: 100%; padding: 14px 32px; background: #2563eb; color: #fff; border: none; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'Sora', sans-serif; transition: all 0.2s;">Got it</button>
+      <button class="modal-close" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; color: #94a3b8; cursor: pointer;">&times;</button>
+    </div>`;
+    
   document.body.appendChild(wrap);
+  
   const close = () => wrap.remove();
   wrap.querySelector('.modal-close').onclick = close;
-  wrap.querySelector('[data-close]').onclick = close;
+  wrap.querySelector('#btn-wire-got-it').onclick = close;
   wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
 }
 
