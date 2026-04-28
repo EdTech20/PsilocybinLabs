@@ -212,15 +212,18 @@ app.get('/success', (req, res) => {
 // Static assets
 app.use(express.static(path.join(ROOT, 'public')));
 
-app.listen(PORT, () => {
-  console.log(`Sub Doc Portal listening on http://localhost:${PORT}`);
-  console.log(`Serving home page at /`);
-  console.log(`Serving landing page at /landing`);
-  console.log(`Serving admin at /admin`);
-  console.log(
-    isDocusignConfigured()
-      ? '  DocuSign: ENABLED'
-      : '  DocuSign: not configured (download-only mode)'
-  );
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Sub Doc Portal listening on http://localhost:${PORT}`);
+    console.log(`Serving home page at /`);
+    console.log(`Serving landing page at /landing`);
+    console.log(`Serving admin at /admin`);
+    console.log(
+      isDocusignConfigured()
+        ? '  DocuSign: ENABLED'
+        : '  DocuSign: not configured (download-only mode)'
+    );
+  });
+}
 
+module.exports = app;

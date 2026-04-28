@@ -2983,12 +2983,30 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         })
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'DocuSign API failed');
+      const contentType = res.headers.get('content-type') || '';
+      const rawBody = await res.text();
+      let parsedBody = null;
+
+      if (contentType.includes('application/json')) {
+        try {
+          parsedBody = JSON.parse(rawBody);
+        } catch (parseErr) {
+          console.warn('DocuSign response was marked as JSON but could not be parsed.', parseErr);
+        }
       }
 
-      const data = await res.json();
+      if (!res.ok) {
+        const fallbackMessage = rawBody
+          ? rawBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220)
+          : '';
+        throw new Error(parsedBody?.error || fallbackMessage || 'DocuSign API failed');
+      }
+
+      if (!parsedBody) {
+        throw new Error('DocuSign API returned a non-JSON response.');
+      }
+
+      const data = parsedBody;
       const envelopeId = data.envelopeId;
 
       const req = {
